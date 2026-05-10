@@ -57,6 +57,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Creeper;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -91,6 +93,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private static final String INPUT_VAULT_CONTROLLER_TAG = "InputVaultController";
 	private static final String OUTPUT_VAULT_CONTROLLER_TAG = "OutputVaultController";
 	private static final String CONFIGURED_INPUT_VAULT_CONTROLLER_TAG = "ConfiguredInputVaultController";
+	private static final String CREEPER_FACE_VISIBLE_TAG = "CreeperFaceVisible";
 	private static final String OVERLOAD_POINTS_TAG = "OverloadPoints";
 	private static final int READY_OUTPUT_TIMEOUT = 20 * 5;
 	private static final int CREEPER_ENTRY_ANIMATION_TICKS = 10;
@@ -132,6 +135,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private final List<ReadyOutput> readyOutputs = new ArrayList<>();
 	private final Map<UUID, BlockPos> syncedMarkedCreepers = new HashMap<>();
 	private boolean controllerOutputRequested;
+	private boolean creeperFaceVisible = true;
 	private final Map<Long, Float> clientPressOffsets = new HashMap<>();
 	private final Set<Long> clientReturnEffectsArmed = new HashSet<>();
 	private final Set<UUID> clientTrackedCreeperUuids = new HashSet<>();
@@ -163,6 +167,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		be.tickReadyOutputs();
 		be.tickPressProcessing();
 		be.tickOverloadDecay(level);
+		be.syncFormedBlockState();
 
 		if (be.recheckTimer > 0) {
 			be.recheckTimer--;
@@ -296,6 +301,9 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 							continue;
 						}
 
+						if (isController && chainDriveReserved)
+							return null;
+
 						if (isChainDrive && !chainDriveReserved)
 							return null;
 
@@ -414,8 +422,21 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			: null;
 		if (!valid)
 			pressCycleProcessed = false;
+		syncFormedBlockState();
 		syncVaultRoleBindings(level, previousInput, previousOutput);
 		notifyUpdate();
+	}
+
+	private void syncFormedBlockState() {
+		if (level == null || level.isClientSide)
+			return;
+		BlockState state = getBlockState();
+		if (!state.hasProperty(CreeperBlastChamberBlock.FORMED))
+			return;
+		boolean formed = structureValid;
+		if (state.getValue(CreeperBlastChamberBlock.FORMED) == formed)
+			return;
+		level.setBlock(worldPosition, state.setValue(CreeperBlastChamberBlock.FORMED, formed), 3);
 	}
 
 	private VaultRoleAssignment resolveVaultRoleAssignment(BlockPos firstVaultController, BlockPos secondVaultController) {
@@ -694,6 +715,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		for (Map.Entry<UUID, BlockPos> entry : syncedMarkedCreepers.entrySet())
 			markedCreeperList.add(new TrackedMarkedCreeper(entry.getKey(), entry.getValue()).write());
 		tag.put(MARKED_CREEPERS_TAG, markedCreeperList);
+		tag.putBoolean(CREEPER_FACE_VISIBLE_TAG, creeperFaceVisible);
 		tag.putInt(OVERLOAD_POINTS_TAG, overloadPoints);
 		if (structureOrigin != null) {
 			tag.putInt("OriginX", structureOrigin.getX());
@@ -735,6 +757,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			TrackedMarkedCreeper tracked = TrackedMarkedCreeper.read((CompoundTag) markedCreeperTag);
 			syncedMarkedCreepers.put(tracked.creeperUuid, tracked.packagerPos);
 		}
+		creeperFaceVisible = !tag.contains(CREEPER_FACE_VISIBLE_TAG) || tag.getBoolean(CREEPER_FACE_VISIBLE_TAG);
 		if (tag.contains("OriginX")) {
 			structureOrigin = new BlockPos(
 				tag.getInt("OriginX"), tag.getInt("OriginY"), tag.getInt("OriginZ"));
@@ -782,6 +805,10 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	@Nullable
 	public BlockPos getBottomCenter() {
 		return bottomCenter;
+	}
+
+	public boolean shouldRenderCreeperFace() {
+		return structureValid && creeperFaceVisible;
 	}
 
 	private void tickPressProcessing() {
@@ -1845,10 +1872,16 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 
 	@Nullable
 	public static BlockPos findGoggleInformationSource(Level level, BlockPos structurePos) {
+		CreeperBlastChamberBlockEntity controller = findStructureController(level, structurePos);
+		return controller != null ? controller.getBlockPos() : null;
+	}
+
+	@Nullable
+	public static CreeperBlastChamberBlockEntity findStructureController(Level level, BlockPos structurePos) {
 		BlockEntity directBlockEntity = level.getBlockEntity(structurePos);
 		if (directBlockEntity instanceof CreeperBlastChamberBlockEntity chamber
 			&& chamber.isStructurePart(structurePos))
-			return chamber.getBlockPos();
+			return chamber;
 
 		BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
 		for (int y = structurePos.getY() - 3; y <= structurePos.getY() + 3; y++) {
@@ -1858,7 +1891,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 					if (!(level.getBlockEntity(cursor) instanceof CreeperBlastChamberBlockEntity chamber))
 						continue;
 					if (chamber.isStructurePart(structurePos))
-						return chamber.getBlockPos();
+						return chamber;
 				}
 			}
 		}
@@ -1866,8 +1899,51 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		return null;
 	}
 
+	public static InteractionResult onStructureCasingWrenched(Level level, BlockPos clickedPos, @Nullable Player player) {
+		CreeperBlastChamberBlockEntity chamber = findStructureController(level, clickedPos);
+		if (chamber == null || !chamber.canToggleCreeperFaceAt(clickedPos))
+			return InteractionResult.FAIL;
+		if (level.isClientSide)
+			return InteractionResult.SUCCESS;
+		chamber.toggleCreeperFaceVisible(player);
+		return InteractionResult.SUCCESS;
+	}
+
 	private boolean isStructurePart(BlockPos pos) {
 		return structureValid && structureOrigin != null && isWithinStructureVolume(pos, structureOrigin, structureSize);
+	}
+
+	private boolean canToggleCreeperFaceAt(BlockPos pos) {
+		if (!isStructurePart(pos) || level == null)
+			return false;
+		BlockState state = level.getBlockState(pos);
+		boolean isController = pos.equals(getBlockPos()) && state.getBlock() instanceof CreeperBlastChamberBlock;
+		boolean isCasing = state.is(CBBlocks.EXPLOSION_PROOF_CASING.get());
+		if (!isController && !isCasing)
+			return false;
+		return !isReservedChainDrivePosition(pos);
+	}
+
+	private boolean isReservedChainDrivePosition(BlockPos pos) {
+		if (!structureValid || structureOrigin == null || structurePressAxis == null)
+			return false;
+		int x = pos.getX() - structureOrigin.getX();
+		int y = pos.getY() - structureOrigin.getY();
+		int z = pos.getZ() - structureOrigin.getZ();
+		if (x < 0 || x >= structureSize || y < 0 || y >= 4 || z < 0 || z >= structureSize)
+			return false;
+		return isReservedChainDrivePosition(x, y, z, structureSize, structurePressAxis);
+	}
+
+	private void toggleCreeperFaceVisible(@Nullable Player player) {
+		creeperFaceVisible = !creeperFaceVisible;
+		setChanged();
+		notifyUpdate();
+		if (player != null) {
+			player.displayClientMessage(Component.translatable(creeperFaceVisible
+				? "create_biotech.creeper_blast_chamber.creeper_face.shown"
+				: "create_biotech.creeper_blast_chamber.creeper_face.hidden"), true);
+		}
 	}
 
 	public float getOverloadFraction() {

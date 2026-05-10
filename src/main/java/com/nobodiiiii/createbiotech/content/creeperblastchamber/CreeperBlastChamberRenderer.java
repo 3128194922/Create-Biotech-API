@@ -30,6 +30,8 @@ public class CreeperBlastChamberRenderer implements BlockEntityRenderer<CreeperB
 		PartialModel.of(CreateBiotech.asResource("block/blast_chamber_display/panel"));
 	private static final PartialModel DISPLAY_DIAL =
 		PartialModel.of(CreateBiotech.asResource("block/blast_chamber_display/dial"));
+	private static final PartialModel CREEPER_FACE =
+		PartialModel.of(CreateBiotech.asResource("block/blast_chamber_display/creeper_face"));
 	private final EntityRenderDispatcher entityRenderDispatcher;
 
 	public CreeperBlastChamberRenderer(BlockEntityRendererProvider.Context context) {
@@ -39,63 +41,72 @@ public class CreeperBlastChamberRenderer implements BlockEntityRenderer<CreeperB
 	@Override
 	public void render(CreeperBlastChamberBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
 		int light, int overlay) {
-		BlockPos origin = be.getStructureOrigin();
-		int size = be.getStructureSize();
-		if (origin == null || !be.isStructureValid())
-			return;
-
-		float progress = be.displayGauge.getValue(partialTicks);
-
 		Level level = be.getLevel();
 		if (level == null)
 			return;
 
 		BlockState blockState = be.getBlockState();
 		VertexConsumer vb = buffer.getBuffer(RenderType.cutout());
+		float progress = be.displayGauge.getValue(partialTicks);
 
-		float dialPivotY = 6f / 16;
-		float dialPivotZ = 8f / 16;
-		int half = size / 2;
-
-		RenderSystem.disableDepthTest();
-
-		for (Direction d : Iterate.horizontalDirections) {
-			BlockPos wallPos = origin.offset(
-				d.getAxis() == Direction.Axis.X ? (d.getAxisDirection() == Direction.AxisDirection.POSITIVE ? size - 1 : 0) : half,
-				0,
-				d.getAxis() == Direction.Axis.Z ? (d.getAxisDirection() == Direction.AxisDirection.POSITIVE ? size - 1 : 0) : half);
-
-			double dx = wallPos.getX() - be.getBlockPos().getX();
-			double dy = wallPos.getY() - be.getBlockPos().getY();
-			double dz = wallPos.getZ() - be.getBlockPos().getZ();
-
-			ms.pushPose();
-			ms.translate(dx + 0.5, dy + 0.5, dz + 0.5);
-
-			int displayLight = LevelRenderer.getLightColor(level, wallPos.relative(d));
-
-			float yRot = -d.toYRot() - 90;
-			CachedBuffers.partial(DISPLAY_PANEL, blockState)
-				.rotateYDegrees(yRot)
-				.uncenter()
-				.translate(1f / 2f - 6f / 16f, 0, 0)
-				.light(displayLight)
-				.renderInto(ms, vb);
-			CachedBuffers.partial(DISPLAY_DIAL, blockState)
-				.rotateYDegrees(yRot)
-				.uncenter()
-				.translate(1f / 2f - 6f / 16f, 0, 0)
-				.translate(0, dialPivotY, dialPivotZ)
-				.rotateXDegrees(-145 * progress + 90)
-				.translate(0, -dialPivotY, -dialPivotZ)
-				.light(displayLight)
-				.renderInto(ms, vb);
-
-			ms.popPose();
+		if (be.isStructureValid()) {
+			if (be.shouldRenderCreeperFace())
+				renderCreeperFace(be, ms, vb, blockState, level);
+			renderAnimatedCreepers(be, partialTicks, ms, buffer);
+			return;
 		}
 
-		RenderSystem.enableDepthTest();
-		renderAnimatedCreepers(be, partialTicks, ms, buffer);
+		renderStandalonePanels(be, ms, vb, blockState, level, progress);
+	}
+
+	private void renderStandalonePanels(CreeperBlastChamberBlockEntity be, PoseStack ms, VertexConsumer vb,
+		BlockState blockState, Level level, float progress) {
+		BlockPos pos = be.getBlockPos();
+		for (Direction d : Iterate.horizontalDirections) {
+			ms.pushPose();
+			ms.translate(0.5, 0.5, 0.5);
+			renderGauge(ms, vb, blockState, d, LevelRenderer.getLightColor(level, pos.relative(d)), progress);
+			ms.popPose();
+		}
+	}
+
+	private void renderGauge(PoseStack ms, VertexConsumer vb, BlockState blockState, Direction side, int light,
+		float progress) {
+		float dialPivotY = 6f / 16;
+		float dialPivotZ = 8f / 16;
+		float yRot = -side.toYRot() - 90;
+
+		CachedBuffers.partial(DISPLAY_PANEL, blockState)
+			.rotateYDegrees(yRot)
+			.uncenter()
+			.translate(1f / 2f - 6f / 16f, 0, 0)
+			.light(light)
+			.renderInto(ms, vb);
+		CachedBuffers.partial(DISPLAY_DIAL, blockState)
+			.rotateYDegrees(yRot)
+			.uncenter()
+			.translate(1f / 2f - 6f / 16f, 0, 0)
+			.translate(0, dialPivotY, dialPivotZ)
+			.rotateXDegrees(-145 * progress + 90)
+			.translate(0, -dialPivotY, -dialPivotZ)
+			.light(light)
+			.renderInto(ms, vb);
+	}
+
+	private void renderCreeperFace(CreeperBlastChamberBlockEntity be, PoseStack ms, VertexConsumer vb,
+		BlockState blockState, Level level) {
+		BlockPos pos = be.getBlockPos();
+		for (Direction d : Iterate.horizontalDirections) {
+			ms.pushPose();
+			ms.translate(0.5, 0.5, 0.5);
+			CachedBuffers.partial(CREEPER_FACE, blockState)
+				.rotateYDegrees(-d.toYRot() - 90)
+				.uncenter()
+				.translate(1f / 2f - 6f / 16f, 0, 0)
+				.light(LevelRenderer.getLightColor(level, pos.relative(d)))
+				.renderInto(ms, vb);
+			ms.popPose();
+		}
 	}
 
 	private void renderAnimatedCreepers(CreeperBlastChamberBlockEntity be, float partialTicks, PoseStack ms,

@@ -2,6 +2,7 @@ package com.nobodiiiii.createbiotech.client;
 
 import com.nobodiiiii.createbiotech.content.evokertank.EvokerTankRenderer;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.BlastProofChainDriveRenderer;
+import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberBlock;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberRenderer;
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.client.render.SlimeBeltFunnelModel;
@@ -63,6 +64,7 @@ public class CreateBiotechClient {
 		event.register(CreateBiotech.asResource("block/universal_joint_endpoint_slime_overlay"));
 		event.register(CreateBiotech.asResource("block/blast_chamber_display/panel"));
 		event.register(CreateBiotech.asResource("block/blast_chamber_display/dial"));
+		event.register(CreateBiotech.asResource("block/blast_chamber_display/creeper_face"));
 	}
 
 	@SubscribeEvent
@@ -91,6 +93,10 @@ public class CreateBiotechClient {
 					model -> new CTModel(model, new CasingConnectedHorizontalCTBehaviour(
 						CBSpriteShifts.EXPLOSION_PROOF_CASING_SIDE, CBSpriteShifts.EXPLOSION_PROOF_CASING)));
 			CreateClient.MODEL_SWAPPER.getCustomBlockModels()
+				.register(CreateBiotech.asResource("creeper_blast_chamber_formed"),
+					model -> new CTModel(model, new CasingConnectedHorizontalCTBehaviour(
+						CBSpriteShifts.EXPLOSION_PROOF_CASING_SIDE, CBSpriteShifts.EXPLOSION_PROOF_CASING)));
+			CreateClient.MODEL_SWAPPER.getCustomBlockModels()
 				.register(CreateBiotech.asResource("explosion_proof_item_vault"),
 					model -> new CTModel(model, new ExplosionProofItemVaultCTBehaviour()));
 			CreateClient.MODEL_SWAPPER.getCustomBlockModels()
@@ -102,6 +108,10 @@ public class CreateBiotechClient {
 					model -> new CTModel(model, new SimpleCTBehaviour(CBSpriteShifts.BLAST_PROOF_FRAMED_GLASS)));
 			CreateClient.CASING_CONNECTIVITY.makeCasing(CBBlocks.EXPLOSION_PROOF_CASING.get(),
 				CBSpriteShifts.EXPLOSION_PROOF_CASING_SIDE);
+			CreateClient.CASING_CONNECTIVITY.make(CBBlocks.CREEPER_BLAST_CHAMBER.get(),
+				CBSpriteShifts.EXPLOSION_PROOF_CASING_SIDE,
+				(state, face) -> state.hasProperty(CreeperBlastChamberBlock.FORMED)
+					&& state.getValue(CreeperBlastChamberBlock.FORMED));
 			CreateClient.CASING_CONNECTIVITY.make(CBBlocks.BLAST_PROOF_CHAIN_DRIVE.get(),
 				CBSpriteShifts.EXPLOSION_PROOF_CASING_SIDE,
 				(state, face) -> face.getAxis() != state.getValue(BlockStateProperties.AXIS));
