@@ -246,6 +246,9 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private StructureScanResult findStructure(Level level, BlockPos controllerPos, int size) {
 		for (int dx = 0; dx < size; dx++) {
 			for (int dz = 0; dz < size; dz++) {
+				if (dx > 0 && dx < size - 1 && dz > 0 && dz < size - 1)
+					continue;
+
 				BlockPos origin = controllerPos.offset(-dx, 0, -dz);
 				StructureScanResult result = scanStructure(level, origin, size);
 				if (result != null)
@@ -265,6 +268,8 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			return null;
 		Axis pressShaftAxis = getPressShaftAxis(centerPressState);
 		Map<Long, BlockPos> vaultControllers = new LinkedHashMap<>();
+		int controllerCount = 0;
+		int remainingSpecialSlots = 14 * size - 12;
 
 		for (int y = 0; y < 4; y++) {
 			for (int x = 0; x < size; x++) {
@@ -293,6 +298,15 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 						boolean isTopOrBottom = (y == 0 || y == 3);
 						boolean chainDriveReserved = isReservedChainDrivePosition(x, y, z, size, pressShaftAxis);
 
+						if (!chainDriveReserved)
+							remainingSpecialSlots--;
+
+						if (isController) {
+							controllerCount++;
+							if (controllerCount > 1)
+								return null;
+						}
+
 						if (isVault) {
 							if (chainDriveReserved)
 								return null;
@@ -300,6 +314,10 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 							if (controller == null || !isWholeVaultInsideStructure(level, controller, origin, size))
 								return null;
 							vaultControllers.putIfAbsent(controller.getBlockPos().asLong(), controller.getBlockPos());
+							if (vaultControllers.size() > 2)
+								return null;
+							if (controllerCount + vaultControllers.size() + remainingSpecialSlots < 3)
+								return null;
 							continue;
 						}
 
@@ -312,6 +330,8 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 						if (isTopOrBottom || isVerticalEdge) {
 							if (!isController && !isCasing && !isChainDrive)
 								return null;
+							if (controllerCount + vaultControllers.size() + remainingSpecialSlots < 3)
+								return null;
 							continue;
 						}
 
@@ -319,10 +339,16 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 							|| state.is(CBBlocks.BLAST_PROOF_FRAMED_GLASS.get());
 						if (!isController && !isCasing && !isGlass)
 							return null;
+
+						if (controllerCount + vaultControllers.size() + remainingSpecialSlots < 3)
+							return null;
 					}
 				}
 			}
 		}
+
+		if (controllerCount != 1)
+			return null;
 
 		if (vaultControllers.size() != 2)
 			return null;

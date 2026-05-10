@@ -7,8 +7,8 @@ import com.simibubi.create.foundation.gui.AllIcons;
 import net.createmod.catnip.lang.Lang;
 
 public enum CreeperBlastChamberVaultRole implements INamedIconOptions {
-	INPUT(AllIcons.I_FULL_REQUESTS),
-	OUTPUT(AllIcons.I_SEND_ONLY);
+	INPUT(AllIcons.I_PRIORITY_LOW),
+	OUTPUT(AllIcons.I_PRIORITY_HIGH);
 
 	private final AllIcons icon;
 	private final String translationKey;
