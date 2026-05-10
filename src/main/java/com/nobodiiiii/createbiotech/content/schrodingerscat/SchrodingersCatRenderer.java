@@ -9,7 +9,6 @@ import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRende
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import net.createmod.catnip.render.CachedBuffers;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
@@ -23,9 +22,9 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class SchrodingersCatRenderer extends SmartBlockEntityRenderer<SchrodingersCatBlockEntity> {
 
-	private static final PartialModel TORCH_BASE =
+	private static final PartialModel TORCH_OFF =
 		PartialModel.of(CreateBiotech.asResource("block/schrodingers_cat/redstone_torch_off"));
-	private static final PartialModel TORCH_GLOW =
+	private static final PartialModel TORCH_ON =
 		PartialModel.of(CreateBiotech.asResource("block/schrodingers_cat/redstone_torch_on"));
 	private static final ItemStack DISPLAY_SWORD = new ItemStack(Items.IRON_SWORD);
 	private static final float SWORD_SCALE = 0.5f;
@@ -51,24 +50,14 @@ public class SchrodingersCatRenderer extends SmartBlockEntityRenderer<Schrodinge
 	private void renderTorch(SchrodingersCatBlockEntity blockEntity, PoseStack poseStack, MultiBufferSource buffer,
 		int packedLight, BlockState state, Direction facing) {
 		boolean powered = blockEntity.getOutputSignal() > 0;
-		VertexConsumer vertexConsumer = buffer.getBuffer(RenderType.cutout());
+		VertexConsumer cutoutBuffer = buffer.getBuffer(RenderType.cutout());
 
-		CachedBuffers.partial(TORCH_BASE, state)
+		CachedBuffers.partial(powered ? TORCH_ON : TORCH_OFF, state)
 			.center()
 			.rotateYDegrees(blockModelYRotation(facing))
 			.uncenter()
-			.light(powered ? LightTexture.FULL_BRIGHT : packedLight)
-			.renderInto(poseStack, vertexConsumer);
-
-		if (!powered)
-			return;
-
-		CachedBuffers.partial(TORCH_GLOW, state)
-			.center()
-			.rotateYDegrees(blockModelYRotation(facing))
-			.uncenter()
-			.light(LightTexture.FULL_BRIGHT)
-			.renderInto(poseStack, vertexConsumer);
+			.light(packedLight)
+			.renderInto(poseStack, cutoutBuffer);
 	}
 
 	private void renderSword(SchrodingersCatBlockEntity blockEntity, PoseStack poseStack, MultiBufferSource buffer,
