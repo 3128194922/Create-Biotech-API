@@ -1,0 +1,22 @@
+{
+  "credit": "Adapted from Create pulse_repeater indicator",
+  "render_type": "solid",
+  "textures": {
+    "indicator": "create:block/diodes/pulse_repeater/idle",
+    "particle": "create:block/diodes/pulse_repeater/idle"
+  },
+  "elements": [
+    {
+      "name": "indicator_cap",
+      "from": [6.75, 7.15, 13.75],
+      "to": [9.25, 7.5, 16.25],
+      "faces": {
+        "north": {"texture": "#indicator", "uv": [4, 4, 12, 5], "rotation": 180},
+        "east": {"texture": "#indicator", "uv": [11, 4, 12, 12], "rotation": 90},
+        "south": {"texture": "#indicator", "uv": [4, 11, 12, 12]},
+        "west": {"texture": "#indicator", "uv": [4, 12, 5, 4], "rotation": 90},
+        "up": {"texture": "#indicator", "uv": [4, 4, 12, 12]}
+      }
+    }
+  ]
+}
