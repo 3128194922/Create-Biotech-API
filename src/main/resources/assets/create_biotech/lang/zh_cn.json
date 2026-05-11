@@ -45,5 +45,6 @@
   "create_biotech.creeper_blast_chamber.vault_role.output": "结构输出",
   "block.create_biotech.liquid_living_slime": "液态活体史莱姆",
   "fluid_type.create_biotech.liquid_living_slime": "液态活体史莱姆",
-  "item.create_biotech.liquid_living_slime_bucket": "液态活体史莱姆桶"
+  "item.create_biotech.liquid_living_slime_bucket": "液态活体史莱姆桶",
+  "entity.create_biotech.ghast_hot_air_balloon": "恶魂热气球"
 }

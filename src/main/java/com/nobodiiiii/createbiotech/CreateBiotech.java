@@ -5,7 +5,9 @@ import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionPro
 import com.nobodiiiii.createbiotech.network.CBPackets;
 import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
 import com.nobodiiiii.createbiotech.registry.CBBlocks;
+import com.nobodiiiii.createbiotech.registry.CBContraptionTypes;
 import com.nobodiiiii.createbiotech.registry.CBCreativeModeTabs;
+import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
 import com.nobodiiiii.createbiotech.registry.CBFluids;
 import com.nobodiiiii.createbiotech.registry.CBItems;
 import com.nobodiiiii.createbiotech.registry.CBRecipeTypes;
@@ -21,12 +23,14 @@ public class CreateBiotech {
 	public static final String MOD_ID = "create_biotech";
 
 	public CreateBiotech() {
+		CBContraptionTypes.init();
 		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
 		CBBlocks.register(modEventBus);
 		CBItems.register(modEventBus);
 		CBFluids.register(modEventBus);
 		CBCreativeModeTabs.register(modEventBus);
 		CBBlockEntityTypes.register(modEventBus);
+		CBEntityTypes.register(modEventBus);
 		CBRecipeTypes.register(modEventBus);
 		modEventBus.addListener(CreateBiotech::onCommonSetup);
 		CBPackets.register();
