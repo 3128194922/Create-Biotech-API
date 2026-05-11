@@ -59,7 +59,7 @@ public class CBBlocks {
 
 	public static final RegistryObject<UniversalJointBlock> UNIVERSAL_JOINT = BLOCKS.register("universal_joint",
 		() -> new UniversalJointBlock(Block.Properties.of()
-			.sound(SoundType.COPPER)
+			.sound(SoundType.STONE)
 			.strength(0.8f)
 			.mapColor(MapColor.METAL)
 			.noOcclusion()));

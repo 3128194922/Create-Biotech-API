@@ -152,8 +152,8 @@ public class UniversalJointItem extends BlockItem {
 		firstJoint.setLinkedPos(second.jointPos);
 		secondJoint.setLinkedPos(first.jointPos);
 
-		level.playSound(null, first.jointPos, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.5f, 1.0f);
-		level.playSound(null, second.jointPos, SoundEvents.CHAIN_PLACE, SoundSource.BLOCKS, 0.5f, 1.0f);
+		level.playSound(null, first.jointPos, SoundEvents.SLIME_JUMP, SoundSource.BLOCKS, 0.5f, 1.0f);
+		level.playSound(null, second.jointPos, SoundEvents.SLIME_JUMP, SoundSource.BLOCKS, 0.5f, 1.0f);
 		return true;
 	}
 
