@@ -10,6 +10,7 @@ import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionPro
 import com.nobodiiiii.createbiotech.content.fixedcarrotfishingrod.FixedCarrotFishingRodRenderer;
 import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHotAirBalloonAssemblyStationRenderer;
 import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHotAirBalloonEntity;
+import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHotAirBalloonEntityRenderer;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltHelper;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltRenderer;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltSpriteShifts;
@@ -69,7 +70,7 @@ public class CreateBiotechClient {
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.GHAST_HOT_AIR_BALLOON_ASSEMBLY_STATION.get(),
 			GhastHotAirBalloonAssemblyStationRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get(),
-			ContraptionEntityRenderer<GhastHotAirBalloonEntity>::new);
+			GhastHotAirBalloonEntityRenderer::new);
 	}
 
 	@SubscribeEvent

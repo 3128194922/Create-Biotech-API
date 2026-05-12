@@ -57,22 +57,20 @@ public class GhastHotAirBalloonAssemblyStationBlockEntity extends BlockEntity {
 		if (!be.running)
 			return;
 
-		int floorOffset = Mth.floor(be.offset);
-		if (floorOffset >= 1) {
-			BlockPos checkPos = pos.below(floorOffset);
-			if (level.isOutsideBuildHeight(checkPos)) {
-				be.stopRunning();
-				return;
-			}
-			BlockState checkState = level.getBlockState(checkPos);
-			if (!checkState.isAir()) {
-				boolean movable = BlockMovementChecks.isMovementNecessary(checkState, level, checkPos)
-					&& !BlockMovementChecks.isBrittle(checkState);
-				if (movable)
-					be.doAssemble(checkPos, floorOffset);
-				be.stopRunning();
-				return;
-			}
+		int nextDepth = Mth.floor(be.offset) + 1;
+		BlockPos checkPos = pos.below(nextDepth);
+		if (level.isOutsideBuildHeight(checkPos)) {
+			be.stopRunning();
+			return;
+		}
+		BlockState checkState = level.getBlockState(checkPos);
+		if (!checkState.isAir()) {
+			boolean movable = BlockMovementChecks.isMovementNecessary(checkState, level, checkPos)
+				&& !BlockMovementChecks.isBrittle(checkState);
+			if (movable)
+				be.doAssemble(checkPos, nextDepth);
+			be.stopRunning();
+			return;
 		}
 
 		int maxLength = AllConfigs.server().kinetics.maxRopeLength.get();

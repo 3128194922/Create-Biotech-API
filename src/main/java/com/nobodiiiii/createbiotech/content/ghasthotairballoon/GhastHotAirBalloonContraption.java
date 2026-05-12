@@ -1,6 +1,9 @@
 package com.nobodiiiii.createbiotech.content.ghasthotairballoon;
 
+import org.apache.commons.lang3.tuple.Pair;
+
 import com.nobodiiiii.createbiotech.registry.CBContraptionTypes;
+import com.simibubi.create.AllBlocks;
 import com.simibubi.create.api.contraption.ContraptionType;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.TranslatingContraption;
@@ -9,6 +12,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
 public class GhastHotAirBalloonContraption extends TranslatingContraption {
 
@@ -33,6 +39,17 @@ public class GhastHotAirBalloonContraption extends TranslatingContraption {
 	public boolean assemble(Level world, BlockPos pos) throws AssemblyException {
 		if (!searchMovedStructure(world, pos, null))
 			return false;
+
+		BlockPos magnetPos = pos.above();
+		addBlock(world, magnetPos, Pair.of(new StructureBlockInfo(magnetPos,
+			AllBlocks.PULLEY_MAGNET.getDefaultState(), null), null));
+
+		for (int i = 2; i <= initialOffset; i++) {
+			BlockPos ropePos = pos.above(i);
+			addBlock(world, ropePos, Pair.of(new StructureBlockInfo(ropePos,
+				AllBlocks.ROPE.getDefaultState(), null), null));
+		}
+
 		startMoving(world);
 		return true;
 	}
@@ -43,6 +60,16 @@ public class GhastHotAirBalloonContraption extends TranslatingContraption {
 			return false;
 		int y = pos.getY();
 		return y > anchor.getY() && y <= anchor.getY() + initialOffset;
+	}
+
+	@Override
+	protected boolean customBlockPlacement(LevelAccessor world, BlockPos pos, BlockState state) {
+		return AllBlocks.PULLEY_MAGNET.has(state) || AllBlocks.ROPE.has(state);
+	}
+
+	@Override
+	protected boolean customBlockRemoval(LevelAccessor world, BlockPos pos, BlockState state) {
+		return AllBlocks.PULLEY_MAGNET.has(state) || AllBlocks.ROPE.has(state);
 	}
 
 	@Override
