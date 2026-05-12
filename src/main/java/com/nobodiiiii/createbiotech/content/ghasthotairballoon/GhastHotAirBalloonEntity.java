@@ -6,6 +6,7 @@ import com.nobodiiiii.createbiotech.content.cardboardbox.CapturedEntityBoxHelper
 import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
 import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
 
+import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -30,6 +31,7 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	private static final float TURN_ACCELERATION = 1.0f;
 	private static final float TURN_DRAG = 0.85f;
 	private static final float MAX_TURN_SPEED = 6.0f;
+	private static final float MAX_CONTRAPTION_YAW_STEP = 8.0f;
 	private static final double MOTION_EPSILON = 1.0E-4d;
 	private static final int INPUT_TIMEOUT_TICKS = 8;
 
@@ -127,6 +129,26 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		super.stopControlling(controlsLocalPos);
 		clearInputs();
 		inputTimeout = 0;
+	}
+
+	@Override
+	protected boolean updateOrientation(boolean rotationLock, boolean wasStalled, Entity riding, boolean isOnCoupling) {
+		if (!(riding instanceof Ghast ghast) || !ghast.isAlive())
+			return super.updateOrientation(rotationLock, wasStalled, riding, isOnCoupling);
+
+		prevYaw = yaw;
+		prevPitch = pitch;
+		pitch = 0;
+
+		targetYaw = AngleHelper.wrapAngle180(ghast.getYRot());
+		float approach = AngleHelper.getShortestAngleDiff(yaw, targetYaw);
+		approach = Mth.clamp(approach, -MAX_CONTRAPTION_YAW_STEP, MAX_CONTRAPTION_YAW_STEP);
+		yaw = AngleHelper.wrapAngle180(yaw + approach);
+
+		if (Math.abs(AngleHelper.getShortestAngleDiff(yaw, targetYaw)) < 0.5f)
+			yaw = targetYaw;
+
+		return Math.abs(approach) > 0.01f;
 	}
 
 	private void tickInputTimeout() {
