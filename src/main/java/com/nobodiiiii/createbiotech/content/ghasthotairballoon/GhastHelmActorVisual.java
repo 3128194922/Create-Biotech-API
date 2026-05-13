@@ -2,6 +2,8 @@ package com.nobodiiiii.createbiotech.content.ghasthotairballoon;
 
 import org.joml.Matrix4f;
 
+import com.simibubi.create.AllPartialModels;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ActorVisual;
 import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
@@ -18,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class GhastHelmActorVisual extends ActorVisual {
 
-	private final TransformedInstance body;
 	private final TransformedInstance cover;
 	private final TransformedInstance firstLever;
 	private final TransformedInstance secondLever;
@@ -29,23 +30,19 @@ public class GhastHelmActorVisual extends ActorVisual {
 		super(visualizationContext, simulationWorld, movementContext);
 
 		BlockState state = movementContext.state;
-		facing = state.getValue(com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock.FACING);
+		facing = state.getValue(ControlsBlock.FACING);
 
-		body =
-			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(GhastHelmMovementBehaviour.GHAST_HELM_BODY))
-				.createInstance();
 		cover =
-			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(GhastHelmMovementBehaviour.GHAST_HELM_COVER))
+			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(AllPartialModels.TRAIN_CONTROLS_COVER))
 				.createInstance();
 		firstLever =
-			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(GhastHelmMovementBehaviour.GHAST_HELM_LEVER))
+			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(AllPartialModels.TRAIN_CONTROLS_LEVER))
 				.createInstance();
 		secondLever =
-			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(GhastHelmMovementBehaviour.GHAST_HELM_LEVER))
+			instancerProvider.instancer(InstanceTypes.TRANSFORMED, Models.partial(AllPartialModels.TRAIN_CONTROLS_LEVER))
 				.createInstance();
 
 		int blockLight = localBlockLight();
-		body.light(blockLight, 0).setChanged();
 		cover.light(blockLight, 0).setChanged();
 		firstLever.light(blockLight, 0).setChanged();
 		secondLever.light(blockLight, 0).setChanged();
@@ -67,13 +64,6 @@ public class GhastHelmActorVisual extends ActorVisual {
 
 	private void updateInstances(float equipAnimation, float first, float second) {
 		float hAngle = 180 + AngleHelper.horizontalAngle(facing);
-
-		body.setIdentityTransform()
-			.translate(context.localPos)
-			.center()
-			.rotateYDegrees(hAngle)
-			.uncenter()
-			.setChanged();
 
 		cover.setIdentityTransform()
 			.translate(context.localPos)
@@ -105,7 +95,6 @@ public class GhastHelmActorVisual extends ActorVisual {
 
 	@Override
 	protected void _delete() {
-		body.delete();
 		cover.delete();
 		firstLever.delete();
 		secondLever.delete();
