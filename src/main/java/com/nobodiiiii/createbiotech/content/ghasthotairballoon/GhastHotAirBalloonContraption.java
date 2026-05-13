@@ -4,6 +4,7 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import com.nobodiiiii.createbiotech.registry.CBContraptionTypes;
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock;
 import com.simibubi.create.api.contraption.ContraptionType;
 import com.simibubi.create.content.contraptions.AssemblyException;
 import com.simibubi.create.content.contraptions.TranslatingContraption;
@@ -13,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
 
@@ -52,6 +54,18 @@ public class GhastHotAirBalloonContraption extends TranslatingContraption {
 
 		startMoving(world);
 		return true;
+	}
+
+	@Override
+	protected Pair<StructureBlockInfo, BlockEntity> capture(Level world, BlockPos pos) {
+		Pair<StructureBlockInfo, BlockEntity> captured = super.capture(world, pos);
+		StructureBlockInfo info = captured.getLeft();
+		if (!info.state().is(com.nobodiiiii.createbiotech.registry.CBBlocks.GHAST_HELM.get()))
+			return captured;
+
+		BlockState openState = info.state().setValue(ControlsBlock.OPEN, true);
+		StructureBlockInfo openInfo = new StructureBlockInfo(info.pos(), openState, info.nbt());
+		return Pair.of(openInfo, captured.getRight());
 	}
 
 	@Override

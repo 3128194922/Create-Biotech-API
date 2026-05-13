@@ -3,6 +3,7 @@ package com.nobodiiiii.createbiotech;
 import com.nobodiiiii.createbiotech.content.fixedcarrotfishingrod.FixedCarrotFishingRodGoalHandler;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultCompat;
 import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHelmMovingInteraction;
+import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHelmMovementBehaviour;
 import com.nobodiiiii.createbiotech.network.CBPackets;
 import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
 import com.nobodiiiii.createbiotech.registry.CBBlocks;
@@ -12,6 +13,7 @@ import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
 import com.nobodiiiii.createbiotech.registry.CBFluids;
 import com.nobodiiiii.createbiotech.registry.CBItems;
 import com.nobodiiiii.createbiotech.registry.CBRecipeTypes;
+import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.behaviour.interaction.MovingInteractionBehaviour;
 
 import net.minecraft.resources.ResourceLocation;
@@ -42,6 +44,7 @@ public class CreateBiotech {
 	private static void onCommonSetup(FMLCommonSetupEvent event) {
 		event.enqueueWork(() -> {
 			ExplosionProofItemVaultCompat.register();
+			MovementBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovementBehaviour());
 			MovingInteractionBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovingInteraction());
 		});
 	}
