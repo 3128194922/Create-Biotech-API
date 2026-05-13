@@ -73,7 +73,7 @@ public class GhastHelmActorVisual extends ActorVisual {
 			.setChanged();
 
 		double yOffset = Mth.lerp(equipAnimation * equipAnimation, -0.15f, 0.05f);
-		updateLever(firstLever, hAngle, Mth.clamp(first * 70 - 25, -45, 45), yOffset, 0);
+		updateLever(firstLever, hAngle, Mth.clamp(first * 15, -45, 45), yOffset, 0);
 		updateLever(secondLever, hAngle, Mth.clamp(second * 15, -45, 45), yOffset, 6 / 16f);
 	}
 

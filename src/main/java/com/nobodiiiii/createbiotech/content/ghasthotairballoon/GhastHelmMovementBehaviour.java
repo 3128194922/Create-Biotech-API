@@ -2,11 +2,12 @@ package com.nobodiiiii.createbiotech.content.ghasthotairballoon;
 
 import java.util.Collection;
 
+import com.mojang.blaze3d.vertex.PoseStack;
+import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsBlock;
 import com.simibubi.create.content.contraptions.actors.trainControls.ControlsHandler;
-import com.simibubi.create.content.contraptions.actors.trainControls.ControlsRenderer;
 import com.simibubi.create.content.contraptions.behaviour.MovementContext;
 import com.simibubi.create.content.contraptions.render.ActorVisual;
 import com.simibubi.create.content.contraptions.render.ContraptionMatrices;
@@ -14,12 +15,20 @@ import com.simibubi.create.foundation.virtualWorld.VirtualRenderWorld;
 
 import dev.engine_room.flywheel.api.visualization.VisualizationContext;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.animation.LerpedFloat;
 import net.createmod.catnip.animation.LerpedFloat.Chaser;
+import net.createmod.catnip.data.Iterate;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.Direction;
+import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
 
@@ -64,7 +73,7 @@ public class GhastHelmMovementBehaviour implements MovementBehaviour {
 		updateTargetAngles(context, balloon, angles);
 
 		float pt = AnimationTickHolder.getPartialTicks();
-		ControlsRenderer.render(context, renderWorld, matrices, buffer, angles.equipAnimation.getValue(pt),
+		renderControls(context, renderWorld, matrices, buffer, angles.equipAnimation.getValue(pt),
 			angles.speed.getValue(pt), angles.steering.getValue(pt));
 	}
 
@@ -100,5 +109,48 @@ public class GhastHelmMovementBehaviour implements MovementBehaviour {
 		angles.equipAnimation.chase(0, .2f, Chaser.EXP);
 		angles.steering.chase(0, 0, Chaser.EXP);
 		angles.speed.chase(0, 0, Chaser.EXP);
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	private static void renderControls(MovementContext context, VirtualRenderWorld renderWorld,
+		ContraptionMatrices matrices, MultiBufferSource buffer, float equipAnimation, float firstLever,
+		float secondLever) {
+		BlockState state = context.state;
+		Direction facing = state.getValue(ControlsBlock.FACING);
+
+		SuperByteBuffer cover = CachedBuffers.partial(AllPartialModels.TRAIN_CONTROLS_COVER, state);
+		float hAngle = 180 + AngleHelper.horizontalAngle(facing);
+		PoseStack ms = matrices.getModel();
+		cover.transform(ms)
+			.center()
+			.rotateYDegrees(hAngle)
+			.uncenter()
+			.light(LevelRenderer.getLightColor(renderWorld, context.localPos))
+			.useLevelLight(context.world, matrices.getWorld())
+			.renderInto(matrices.getViewProjection(), buffer.getBuffer(net.minecraft.client.renderer.RenderType.cutoutMipped()));
+
+		double yOffset = Mth.lerp(equipAnimation * equipAnimation, -0.15f, 0.05f);
+
+		for (boolean first : Iterate.trueAndFalse) {
+			float leverValue = first ? firstLever : secondLever;
+			float vAngle = Mth.clamp(leverValue * 15, -45, 45);
+			SuperByteBuffer lever = CachedBuffers.partial(AllPartialModels.TRAIN_CONTROLS_LEVER, state);
+			ms.pushPose();
+			TransformStack.of(ms)
+				.center()
+				.rotateYDegrees(hAngle)
+				.translate(0, 4 / 16f, 4 / 16f)
+				.rotateXDegrees(vAngle - 45)
+				.translate(0, yOffset, 0)
+				.rotateXDegrees(45)
+				.uncenter()
+				.translate(0, -6 / 16f, -3 / 16f)
+				.translate(first ? 0 : 6 / 16f, 0, 0);
+			lever.transform(ms)
+				.light(LevelRenderer.getLightColor(renderWorld, context.localPos))
+				.useLevelLight(context.world, matrices.getWorld())
+				.renderInto(matrices.getViewProjection(), buffer.getBuffer(net.minecraft.client.renderer.RenderType.solid()));
+			ms.popPose();
+		}
 	}
 }
