@@ -66,7 +66,8 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		Entity vehicle = getVehicle();
 		if (vehicle == null)
 			return 0;
-		return -getCordOffset() - vehicle.getPassengersRidingOffset();
+		return -getCordOffset() - GhastHotAirBalloonSeatEntity.GHAST_PASSENGER_Y_OFFSET
+			- vehicle.getPassengersRidingOffset();
 	}
 
 	private double getCordOffset() {
