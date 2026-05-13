@@ -1,15 +1,21 @@
 package com.nobodiiiii.createbiotech.content.ghasthotairballoon;
 
 import java.util.Collection;
+import java.util.Map;
+import java.util.UUID;
 
 import com.nobodiiiii.createbiotech.content.cardboardbox.CapturedEntityBoxHelper;
 import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
+import com.simibubi.create.AllPackets;
 import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
+import com.simibubi.create.content.contraptions.sync.ContraptionSeatMappingPacket;
 
 import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -18,8 +24,12 @@ import net.minecraft.world.entity.monster.Ghast;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
+import net.minecraftforge.network.PacketDistributor;
 
 public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
+
+	private static final String PERSISTED_SEAT_INDEX_TAG = "CreateBiotechGhastBalloonSeatIndex";
+	private static final String PERSISTED_VEHICLE_TAG = "CreateBiotechGhastBalloonVehicle";
 
 	private static final double FORWARD_ACCELERATION = 0.04d;
 	private static final double BACKWARD_ACCELERATION = 0.02d;
@@ -81,6 +91,9 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 
 	@Override
 	public void tick() {
+		if (!level().isClientSide)
+			restorePassengerSeatMappings();
+
 		Ghast ghast = getVehicle() instanceof Ghast g && g.isAlive() ? g : null;
 		if (!level().isClientSide && ghast != null) {
 			ghast.setNoAi(true);
@@ -91,8 +104,70 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 
 		super.tick();
 
+		if (!level().isClientSide)
+			cachePassengerSeatMappings();
+
 		if (ghast != null)
 			syncVisualYawWhileTurningInPlace(ghast, ghast.getDeltaMovement());
+	}
+
+	private void restorePassengerSeatMappings() {
+		if (getContraption() == null || getPassengers().isEmpty())
+			return;
+
+		Map<UUID, Integer> seatMapping = getContraption().getSeatMapping();
+		boolean changed = false;
+
+		for (Entity passenger : getPassengers()) {
+			if (passenger instanceof OrientedContraptionEntity)
+				continue;
+			if (seatMapping.containsKey(passenger.getUUID()))
+				continue;
+
+			CompoundTag data = passenger.getPersistentData();
+			if (!data.contains(PERSISTED_SEAT_INDEX_TAG, Tag.TAG_INT) || !data.hasUUID(PERSISTED_VEHICLE_TAG))
+				continue;
+			if (!getUUID().equals(data.getUUID(PERSISTED_VEHICLE_TAG)))
+				continue;
+
+			int seatIndex = data.getInt(PERSISTED_SEAT_INDEX_TAG);
+			if (seatIndex < 0 || seatIndex >= getContraption().getSeats().size())
+				continue;
+			if (!isSeatAvailable(seatMapping, passenger.getUUID(), seatIndex))
+				continue;
+
+			seatMapping.put(passenger.getUUID(), seatIndex);
+			changed = true;
+		}
+
+		if (changed) {
+			AllPackets.getChannel().send(PacketDistributor.TRACKING_ENTITY.with(() -> this),
+				new ContraptionSeatMappingPacket(getId(), seatMapping));
+		}
+	}
+
+	private void cachePassengerSeatMappings() {
+		if (getContraption() == null || getPassengers().isEmpty())
+			return;
+
+		Map<UUID, Integer> seatMapping = getContraption().getSeatMapping();
+		for (Entity passenger : getPassengers()) {
+			Integer seatIndex = seatMapping.get(passenger.getUUID());
+			if (seatIndex == null)
+				continue;
+
+			CompoundTag data = passenger.getPersistentData();
+			data.putInt(PERSISTED_SEAT_INDEX_TAG, seatIndex);
+			data.putUUID(PERSISTED_VEHICLE_TAG, getUUID());
+		}
+	}
+
+	private static boolean isSeatAvailable(Map<UUID, Integer> seatMapping, UUID passengerId, int seatIndex) {
+		for (Map.Entry<UUID, Integer> entry : seatMapping.entrySet()) {
+			if (entry.getValue() == seatIndex && !entry.getKey().equals(passengerId))
+				return false;
+		}
+		return true;
 	}
 
 	@Override
