@@ -1,5 +1,9 @@
 package com.nobodiiiii.createbiotech.registry;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.content.cardboardbox.CardboardBoxItem;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultItem;
@@ -11,6 +15,7 @@ import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltConnectorItem;
 import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointItem;
 
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -81,8 +86,8 @@ public class CBItems {
 	public static final RegistryObject<Item> BLAST_PROOF_FRAMED_GLASS = ITEMS.register("blast_proof_framed_glass",
 		() -> new BlockItem(CBBlocks.BLAST_PROOF_FRAMED_GLASS.get(), new Item.Properties()));
 
-	public static final RegistryObject<Item> AIR_CUSHION = ITEMS.register("air_cushion",
-		() -> new BlockItem(CBBlocks.AIR_CUSHION.get(), new Item.Properties()));
+	public static final Map<DyeColor, RegistryObject<Item>> AIR_CUSHIONS = registerAirCushions();
+	public static final RegistryObject<Item> AIR_CUSHION = AIR_CUSHIONS.get(DyeColor.RED);
 
 	private CBItems() {}
 
@@ -104,5 +109,15 @@ public class CBItems {
 
 	public static boolean isCustomBeltConnector(ItemStack stack) {
 		return isSlimeBeltConnector(stack) || isMagmaBeltConnector(stack) || isPowerBeltConnector(stack);
+	}
+
+	private static Map<DyeColor, RegistryObject<Item>> registerAirCushions() {
+		EnumMap<DyeColor, RegistryObject<Item>> airCushions = new EnumMap<>(DyeColor.class);
+		for (DyeColor color : DyeColor.values()) {
+			String id = CBBlocks.airCushionId(color);
+			airCushions.put(color, ITEMS.register(id,
+				() -> new BlockItem(CBBlocks.AIR_CUSHIONS.get(color).get(), new Item.Properties())));
+		}
+		return Collections.unmodifiableMap(airCushions);
 	}
 }

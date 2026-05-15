@@ -2,6 +2,7 @@ package com.nobodiiiii.createbiotech.registry;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
 
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
@@ -39,7 +40,8 @@ public class CBCreativeModeTabs {
 				output.accept(CBItems.EXPLOSION_PROOF_ITEM_VAULT.get());
 				output.accept(CBItems.BLAST_PROOF_GLASS.get());
 				output.accept(CBItems.BLAST_PROOF_FRAMED_GLASS.get());
-				output.accept(CBItems.AIR_CUSHION.get());
+				for (DyeColor color : DyeColor.values())
+					output.accept(CBItems.AIR_CUSHIONS.get(color).get());
 				output.accept(CBFluids.LIQUID_LIVING_SLIME_BUCKET.get());
 			})
 			.build());

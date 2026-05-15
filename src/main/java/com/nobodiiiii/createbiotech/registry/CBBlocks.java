@@ -1,5 +1,9 @@
 package com.nobodiiiii.createbiotech.registry;
 
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.Map;
+
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.content.aircushion.AirCushionBlock;
 import com.nobodiiiii.createbiotech.content.evokertank.EvokerTankBlock;
@@ -21,6 +25,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.GlassBlock;
 import net.minecraft.world.level.block.SoundType;
+import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.registries.DeferredRegister;
@@ -139,17 +144,33 @@ public class CBBlocks {
 		BLOCKS.register("blast_proof_framed_glass",
 			() -> new ConnectedGlassBlock(blastProofGlassProperties()));
 
-	public static final RegistryObject<AirCushionBlock> AIR_CUSHION =
-		BLOCKS.register("air_cushion",
-			() -> new AirCushionBlock(Block.Properties.of()
-				.sound(SoundType.WOOL)
-				.strength(0.4f)
-				.mapColor(MapColor.WOOD)
-				.noOcclusion()));
+	public static final Map<DyeColor, RegistryObject<AirCushionBlock>> AIR_CUSHIONS = registerAirCushions();
+	public static final RegistryObject<AirCushionBlock> AIR_CUSHION = AIR_CUSHIONS.get(DyeColor.RED);
 
 	private static Block.Properties blastProofGlassProperties() {
 		return Block.Properties.copy(Blocks.GLASS)
 			.strength(50.0f, 1200.0f);
+	}
+
+	private static Map<DyeColor, RegistryObject<AirCushionBlock>> registerAirCushions() {
+		EnumMap<DyeColor, RegistryObject<AirCushionBlock>> airCushions = new EnumMap<>(DyeColor.class);
+		for (DyeColor color : DyeColor.values()) {
+			airCushions.put(color, BLOCKS.register(airCushionId(color),
+				() -> new AirCushionBlock(Block.Properties.of()
+					.sound(SoundType.WOOL)
+					.strength(0.4f)
+					.mapColor(color.getMapColor())
+					.noOcclusion())));
+		}
+		return Collections.unmodifiableMap(airCushions);
+	}
+
+	public static String airCushionId(DyeColor color) {
+		return color == DyeColor.RED ? "air_cushion" : color.getName() + "_air_cushion";
+	}
+
+	public static Iterable<RegistryObject<AirCushionBlock>> allAirCushions() {
+		return AIR_CUSHIONS.values();
 	}
 
 	private CBBlocks() {}

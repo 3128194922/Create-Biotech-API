@@ -18,6 +18,7 @@ import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
 import com.simibubi.create.api.behaviour.interaction.MovingInteractionBehaviour;
 
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.DyeColor;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
@@ -46,7 +47,9 @@ public class CreateBiotech {
 		event.enqueueWork(() -> {
 			ExplosionProofItemVaultCompat.register();
 			MovementBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovementBehaviour());
-			MovementBehaviour.REGISTRY.register(CBBlocks.AIR_CUSHION.get(), new AirCushionMovementBehaviour());
+			AirCushionMovementBehaviour airCushionMovementBehaviour = new AirCushionMovementBehaviour();
+			for (DyeColor color : DyeColor.values())
+				MovementBehaviour.REGISTRY.register(CBBlocks.AIR_CUSHIONS.get(color).get(), airCushionMovementBehaviour);
 			MovingInteractionBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovingInteraction());
 		});
 	}
