@@ -161,6 +161,19 @@ public class GhastHotAirBalloonAssemblyStationBlock extends BaseEntityBlock {
 				float depth = stationPos.getY() - magnetY;
 				station.snapToDisassembleOffset(depth);
 			}
+
+			double targetX = seatPos.getX() + 0.5;
+			double targetZ = seatPos.getZ() + 0.5;
+			gc.setPos(targetX, gc.getY(), targetZ);
+			gc.xo = targetX;
+			gc.zo = targetZ;
+			gc.xOld = targetX;
+			gc.zOld = targetZ;
+			gc.setDeltaMovement(0, 0, 0);
+			gc.yaw = yaw;
+			gc.prevYaw = yaw;
+			gc.targetYaw = yaw;
+
 			gc.disassemble();
 		}
 	}

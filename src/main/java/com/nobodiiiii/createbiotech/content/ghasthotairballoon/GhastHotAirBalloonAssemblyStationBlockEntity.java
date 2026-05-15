@@ -28,6 +28,7 @@ public class GhastHotAirBalloonAssemblyStationBlockEntity extends BlockEntity {
 
 	public static final float SPEED = 0.5f; // 256 RPM equivalent (= 256 / 512 blocks/tick)
 	private static final int ATTRACT_PERIOD_TICKS = 20;
+	private static final double MAX_VELOCITY_FOR_ATTRACT_SQR = 1.0E-3d;
 
 	private boolean wasPowered;
 
@@ -107,6 +108,8 @@ public class GhastHotAirBalloonAssemblyStationBlockEntity extends BlockEntity {
 		for (Ghast ghast : GhastHotAirBalloonAssemblyStationBlock.findGhastsToSeat(level, pos)) {
 			if (!GhastHotAirBalloonAssemblyStationBlock.canBePickedUp(ghast, stationIdle))
 				continue;
+			if (ghast.getDeltaMovement().lengthSqr() > MAX_VELOCITY_FOR_ATTRACT_SQR)
+				continue;
 			GhastHotAirBalloonAssemblyStationBlock.sitDown(level, pos, state, ghast);
 			return;
 		}
@@ -115,26 +118,27 @@ public class GhastHotAirBalloonAssemblyStationBlockEntity extends BlockEntity {
 	public void onNeighborSignalChanged(boolean powered) {
 		if (level == null || level.isClientSide)
 			return;
+		if (powered == wasPowered)
+			return;
 
-		if (powered && !wasPowered) {
+		if (powered) {
 			if (!assemblyConsumed && !extending && !retracting && offset == 0) {
 				queuedStartExtend = true;
 			} else if (retracting && !assemblyConsumed) {
 				retracting = false;
 				extending = true;
-				sendUpdate();
 			}
-		} else if (!powered && wasPowered) {
+		} else {
 			assemblyConsumed = false;
 			if (extending || offset > 0) {
 				extending = false;
 				retracting = true;
-				sendUpdate();
 			}
 		}
 
 		wasPowered = powered;
 		setChanged();
+		sendUpdate();
 	}
 
 	private void holdHere() {

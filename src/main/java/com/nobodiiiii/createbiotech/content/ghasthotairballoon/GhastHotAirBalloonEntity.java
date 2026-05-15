@@ -337,6 +337,14 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		Vec3 target = new Vec3(magnetTargetPos.getX() + 0.5, targetY, magnetTargetPos.getZ() + 0.5);
 		Vec3 delta = target.subtract(ghast.position());
 
+		if (delta.lengthSqr() < MAGNET_ARRIVAL_DEADZONE_SQR) {
+			ghast.setDeltaMovement(Vec3.ZERO);
+			deltaRotation = 0;
+			ghast.hasImpulse = true;
+			ghast.hurtMarked = true;
+			return;
+		}
+
 		double horizDist = Math.sqrt(delta.x * delta.x + delta.z * delta.z);
 		double horizSpeed = Math.min(MAX_HORIZONTAL_SPEED, horizDist / MAGNET_BRAKE_DISTANCE * MAX_HORIZONTAL_SPEED);
 		double vertSpeed = Mth.clamp(delta.y / MAGNET_BRAKE_DISTANCE * MAX_VERTICAL_SPEED,
