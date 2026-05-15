@@ -90,6 +90,8 @@ public class GhastHelmMovementBehaviour implements MovementBehaviour {
 	@OnlyIn(Dist.CLIENT)
 	public ActorVisual createVisual(VisualizationContext visualizationContext, VirtualRenderWorld simulationWorld,
 		MovementContext movementContext) {
+		if (!(movementContext.contraption.entity instanceof GhastHotAirBalloonEntity))
+			return null;
 		return new GhastHelmActorVisual(visualizationContext, simulationWorld, movementContext);
 	}
 
