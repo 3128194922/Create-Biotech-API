@@ -26,6 +26,9 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 	private static final String ESCAPE_PUSH_NORMAL_X_TAG = "EscapePushNormalX";
 	private static final String ESCAPE_PUSH_NORMAL_Y_TAG = "EscapePushNormalY";
 	private static final String ESCAPE_PUSH_NORMAL_Z_TAG = "EscapePushNormalZ";
+	private static final String TRAIN_POSITIVE_AXIS_X_TAG = "TrainPositiveAxisX";
+	private static final String TRAIN_POSITIVE_AXIS_Y_TAG = "TrainPositiveAxisY";
+	private static final String TRAIN_POSITIVE_AXIS_Z_TAG = "TrainPositiveAxisZ";
 
 	@Override
 	public void tick(MovementContext context) {
@@ -39,6 +42,8 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 			return;
 		if (entity instanceof GantryContraptionEntity)
 			return;
+		CarriageContraptionEntity carriageEntity =
+			entity instanceof CarriageContraptionEntity carriage && carriage.getCarriage() != null ? carriage : null;
 
 		Vec3 previousEscapePushNormal = getStoredEscapePushNormal(context);
 		Vec3 collisionNormal = getCollisionNormal(context);
@@ -52,8 +57,12 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 			return;
 		}
 
-		boolean escapeFromBlock = shouldApplyEscapePush(context, collisionNormal);
+		boolean escapeFromBlock = carriageEntity == null && shouldApplyEscapePush(context, collisionNormal);
 		applyCollisionResponse(context, entity, collisionNormal, escapeFromBlock);
+		if (carriageEntity != null) {
+			clearStoredEscapePushNormal(context);
+			return;
+		}
 		if (escapeFromBlock) {
 			storeEscapePushNormal(context, collisionNormal);
 			return;
@@ -90,7 +99,8 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 		clipEntityMotion(entity, collisionNormal, escapeFromBlock);
 
 		if (entity instanceof CarriageContraptionEntity carriageEntity && carriageEntity.getCarriage() != null)
-			clipTrainSpeed(context.motion, carriageEntity.getCarriage().train, collisionNormal, escapeFromBlock);
+			clipTrainSpeed(context, context.motion, carriageEntity.getCarriage().train, collisionNormal,
+				escapeFromBlock);
 
 		if (entity instanceof OrientedContraptionEntity orientedEntity)
 			clipCoupledCarts(orientedEntity, collisionNormal, escapeFromBlock);
@@ -137,7 +147,8 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 			.cart(), collisionNormal);
 	}
 
-	private static void clipTrainSpeed(Vec3 actorMotion, Train train, Vec3 collisionNormal, boolean escapeFromBlock) {
+	private static void clipTrainSpeed(MovementContext context, Vec3 actorMotion, Train train, Vec3 collisionNormal,
+		boolean escapeFromBlock) {
 		Vec3 adjustedMotion = adjustMotionAgainstCollision(actorMotion, collisionNormal, escapeFromBlock);
 		if (adjustedMotion.equals(actorMotion))
 			return;
@@ -150,6 +161,7 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 		train.speed = adjustedSpeed;
 		if (train.speedBeforeStall != null)
 			train.speedBeforeStall = adjustedSpeed;
+		clipTrainTargetSpeed(context, actorMotion, train, collisionNormal, referenceSpeed);
 	}
 
 	private static void clearEscapeInfluence(MovementContext context, AbstractContraptionEntity entity,
@@ -294,6 +306,21 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 			train.speedBeforeStall = trimEscapeSpeedMagnitude(train.speedBeforeStall);
 	}
 
+	private static void clipTrainTargetSpeed(MovementContext context, Vec3 actorMotion, Train train,
+		Vec3 collisionNormal, double referenceSpeed) {
+		if (Math.abs(train.targetSpeed) < MOVEMENT_EPSILON)
+			return;
+
+		Vec3 positiveAxis = getTrainPositiveAxis(context, actorMotion, referenceSpeed);
+		if (positiveAxis == null)
+			return;
+
+		Vec3 targetMotion = positiveAxis.scale(train.targetSpeed);
+		Vec3 adjustedTargetMotion = removeVelocityIntoCollisionFace(targetMotion, collisionNormal);
+		double adjustedTargetSpeed = adjustedTargetMotion.dot(positiveAxis);
+		train.targetSpeed = Math.abs(adjustedTargetSpeed) < MOVEMENT_EPSILON ? 0 : adjustedTargetSpeed;
+	}
+
 	private static Vec3 adjustMotionAgainstCollision(Vec3 motion, Vec3 collisionNormal, boolean escapeFromBlock) {
 		Vec3 adjustedMotion = removeVelocityIntoCollisionFace(motion, collisionNormal);
 		if (!escapeFromBlock)
@@ -356,5 +383,36 @@ public class AirCushionMovementBehaviour implements MovementBehaviour {
 		if (collisionNormal.lengthSqr() < MOVEMENT_EPSILON)
 			return null;
 		return collisionNormal.normalize();
+	}
+
+	private static Vec3 getTrainPositiveAxis(MovementContext context, Vec3 actorMotion, double referenceSpeed) {
+		if (actorMotion.lengthSqr() >= MOVEMENT_EPSILON && Math.abs(referenceSpeed) >= MOVEMENT_EPSILON) {
+			Vec3 positiveAxis = actorMotion.normalize();
+			if (referenceSpeed < 0)
+				positiveAxis = positiveAxis.scale(-1);
+			storeTrainPositiveAxis(context, positiveAxis);
+			return positiveAxis;
+		}
+
+		return getStoredTrainPositiveAxis(context);
+	}
+
+	private static void storeTrainPositiveAxis(MovementContext context, Vec3 positiveAxis) {
+		context.data.putDouble(TRAIN_POSITIVE_AXIS_X_TAG, positiveAxis.x);
+		context.data.putDouble(TRAIN_POSITIVE_AXIS_Y_TAG, positiveAxis.y);
+		context.data.putDouble(TRAIN_POSITIVE_AXIS_Z_TAG, positiveAxis.z);
+	}
+
+	private static Vec3 getStoredTrainPositiveAxis(MovementContext context) {
+		if (!context.data.contains(TRAIN_POSITIVE_AXIS_X_TAG)
+			|| !context.data.contains(TRAIN_POSITIVE_AXIS_Y_TAG)
+			|| !context.data.contains(TRAIN_POSITIVE_AXIS_Z_TAG))
+			return null;
+
+		Vec3 positiveAxis = new Vec3(context.data.getDouble(TRAIN_POSITIVE_AXIS_X_TAG),
+			context.data.getDouble(TRAIN_POSITIVE_AXIS_Y_TAG), context.data.getDouble(TRAIN_POSITIVE_AXIS_Z_TAG));
+		if (positiveAxis.lengthSqr() < MOVEMENT_EPSILON)
+			return null;
+		return positiveAxis.normalize();
 	}
 }
