@@ -3,8 +3,16 @@ package com.nobodiiiii.createbiotech.content.spiderassemblytable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlockEntity.MachineKind;
+import com.simibubi.create.AllPartialModels;
+import com.simibubi.create.content.kinetics.base.DirectionalAxisKineticBlock;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 
+import dev.engine_room.flywheel.lib.model.baked.PartialModel;
+import net.createmod.catnip.math.AngleHelper;
+import net.createmod.catnip.render.CachedBuffers;
+import net.createmod.catnip.render.SuperByteBuffer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.SpiderModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -18,8 +26,12 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Spider;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraftforge.client.model.data.ModelData;
+import net.minecraftforge.items.ItemStackHandler;
 
 public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<SpiderAssemblyTableBlockEntity> {
 
@@ -29,6 +41,12 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 	private static final float SPIDER_Y_OFFSET = 0.5f + 15f / 16f * SPIDER_SCALE;
 	private static final float ACTIVE_LEG_BEND = (float) Math.toRadians(20);
 	private static final float SHAFT_OFFSET = 0.34f;
+	private static final float LEG_TIP_OFFSET = 15f / 16f;
+	private static final float MACHINE_HANG_OFFSET = 5f / 16f;
+	private static final float MACHINE_SCALE = 0.4f;
+	private static final float LEG_LENGTH_MODEL = 15.0f;
+	private static final float LEG_PIVOT_X_MODEL = 4.0f;
+	private static final int[] LEG_PIVOT_Z_MODEL = { -1, 0, 1, 2, -1, 0, 1, 2 };
 
 	private final SpiderModel<RenderSpider> spiderModel;
 	private RenderSpider cachedSpider;
@@ -72,7 +90,108 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		ms.scale(-SPIDER_SCALE, -SPIDER_SCALE, SPIDER_SCALE);
 		VertexConsumer spiderBuffer = buffer.getBuffer(spiderModel.renderType(SPIDER_TEXTURE));
 		spiderModel.renderToBuffer(ms, spiderBuffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+		renderLegMachines(be, ms, buffer, light);
 		ms.popPose();
+	}
+
+	private void renderLegMachines(SpiderAssemblyTableBlockEntity be, PoseStack ms, MultiBufferSource buffer, int light) {
+		ModelPart root = spiderModel.root();
+		ItemStackHandler inventory = be.getInventory();
+
+		for (int slot = 0; slot < SpiderAssemblyTableBlockEntity.LEG_COUNT; slot++) {
+			ItemStack machineStack = inventory.getStackInSlot(SpiderAssemblyTableBlockEntity.MACHINE_SLOT_START + slot);
+			MachineKind kind = MachineKind.fromStack(machineStack);
+			if (kind == null)
+				continue;
+
+			ModelPart leg = getAnimatedLeg(root, slot);
+			if (leg == null)
+				continue;
+
+			BlockState machineState = machineStateFor(kind);
+			boolean leftSide = slot < 4;
+			float tipX = leftSide ? LEG_TIP_OFFSET : -LEG_TIP_OFFSET;
+
+			ms.pushPose();
+			leg.translateAndRotate(ms);
+			ms.translate(tipX, 0, 0);
+			ms.translate(0, MACHINE_HANG_OFFSET, 0);
+			ms.mulPose(Axis.XP.rotationDegrees(180));
+			ms.scale(MACHINE_SCALE, MACHINE_SCALE, MACHINE_SCALE);
+			ms.translate(-0.5d, -0.5d, -0.5d);
+			Minecraft.getInstance()
+				.getBlockRenderer()
+				.renderSingleBlock(machineState, ms, buffer, light, OverlayTexture.NO_OVERLAY,
+					ModelData.EMPTY, null);
+			renderMachineParts(kind, machineState, ms, buffer, light);
+			ms.popPose();
+		}
+	}
+
+	private static BlockState machineStateFor(MachineKind kind) {
+		BlockState state = kind.block().defaultBlockState();
+		if (state.hasProperty(BlockStateProperties.FACING))
+			state = state.setValue(BlockStateProperties.FACING, Direction.DOWN);
+		return state;
+	}
+
+	private static void renderMachineParts(MachineKind kind, BlockState state, PoseStack ms, MultiBufferSource buffer,
+		int light) {
+		VertexConsumer solid = buffer.getBuffer(RenderType.solid());
+		switch (kind) {
+		case DEPLOYER -> {
+			transformDeployerPart(CachedBuffers.partial(AllPartialModels.DEPLOYER_POLE, state), state, true)
+				.light(light)
+				.renderInto(ms, solid);
+			transformDeployerPart(CachedBuffers.partial(AllPartialModels.DEPLOYER_HAND_POINTING, state), state, false)
+				.light(light)
+				.renderInto(ms, solid);
+		}
+		case PRESS -> {
+			Direction pressFacing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
+			CachedBuffers.partialFacing(AllPartialModels.MECHANICAL_PRESS_HEAD, state, pressFacing)
+				.light(light)
+				.renderInto(ms, solid);
+		}
+		case SAW -> {
+			Direction sawFacing = state.getValue(BlockStateProperties.FACING);
+			boolean horizontalSaw = sawFacing.getAxis()
+				.isHorizontal();
+			PartialModel bladeModel =
+				horizontalSaw ? AllPartialModels.SAW_BLADE_HORIZONTAL_INACTIVE : AllPartialModels.SAW_BLADE_VERTICAL_INACTIVE;
+			SuperByteBuffer blade = CachedBuffers.partialFacing(bladeModel, state);
+			if (!horizontalSaw && state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE))
+				blade.rotateCentered(AngleHelper.rad(90), Direction.UP);
+			blade.color(0xFFFFFF)
+				.light(light)
+				.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));
+		}
+		case SPOUT -> {
+			CachedBuffers.partial(AllPartialModels.SPOUT_TOP, state)
+				.light(light)
+				.renderInto(ms, solid);
+			CachedBuffers.partial(AllPartialModels.SPOUT_MIDDLE, state)
+				.light(light)
+				.renderInto(ms, solid);
+			CachedBuffers.partial(AllPartialModels.SPOUT_BOTTOM, state)
+				.light(light)
+				.renderInto(ms, solid);
+		}
+		}
+	}
+
+	private static SuperByteBuffer transformDeployerPart(SuperByteBuffer buffer, BlockState state,
+		boolean axisDirectionMatters) {
+		Direction facing = state.getValue(BlockStateProperties.FACING);
+		float yRot = AngleHelper.horizontalAngle(facing);
+		float xRot = facing == Direction.UP ? 270 : facing == Direction.DOWN ? 90 : 0;
+		float zRot = axisDirectionMatters
+			&& (state.getValue(DirectionalAxisKineticBlock.AXIS_ALONG_FIRST_COORDINATE)
+				^ facing.getAxis() == Direction.Axis.Z) ? 90 : 0;
+		buffer.rotateCentered((float) (yRot / 180 * Math.PI), Direction.UP);
+		buffer.rotateCentered((float) (xRot / 180 * Math.PI), Direction.EAST);
+		buffer.rotateCentered((float) (zRot / 180 * Math.PI), Direction.SOUTH);
+		return buffer;
 	}
 
 	private void prepareSpiderModel(RenderSpider spider, SpiderAssemblyTableBlockEntity be, float partialTicks) {
@@ -80,6 +199,12 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		root.getAllParts().forEach(ModelPart::resetPose);
 
 		spiderModel.setupAnim(spider, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+
+		for (int slot = 0; slot < SpiderAssemblyTableBlockEntity.LEG_COUNT; slot++) {
+			ModelPart leg = getAnimatedLeg(root, slot);
+			if (leg != null)
+				aimLegAtDepotCenter(leg, slot);
+		}
 
 		int activeSlot = be.getActiveSlot();
 		ModelPart activeLeg = getAnimatedLeg(root, activeSlot);
@@ -90,6 +215,23 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		float bend = Mth.sin(progress * Mth.PI) * ACTIVE_LEG_BEND;
 		boolean leftSide = activeSlot < 4;
 		activeLeg.zRot += leftSide ? bend : -bend;
+	}
+
+	private static void aimLegAtDepotCenter(ModelPart leg, int slot) {
+		int pzm = LEG_PIVOT_Z_MODEL[slot];
+		float pz2 = pzm * pzm;
+		float myAbs = Mth.sqrt(
+			LEG_LENGTH_MODEL * LEG_LENGTH_MODEL - LEG_PIVOT_X_MODEL * LEG_PIVOT_X_MODEL - pz2);
+		boolean leftSide = slot < 4;
+
+		leg.xRot = 0;
+		if (leftSide) {
+			leg.yRot = (float) Math.asin(pzm / LEG_LENGTH_MODEL);
+			leg.zRot = (float) Math.atan2(myAbs, -LEG_PIVOT_X_MODEL);
+		} else {
+			leg.yRot = (float) Math.asin(-pzm / LEG_LENGTH_MODEL);
+			leg.zRot = (float) Math.atan2(-myAbs, -LEG_PIVOT_X_MODEL);
+		}
 	}
 
 	private static ModelPart getAnimatedLeg(ModelPart root, int slot) {
