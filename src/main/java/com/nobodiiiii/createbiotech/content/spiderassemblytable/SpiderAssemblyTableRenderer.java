@@ -59,6 +59,7 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 	private static final float DEPOT_X_MODEL = 0f;
 	private static final float DEPOT_Y_MODEL = 39f;
 	private static final float DEPOT_Z_MODEL = 0f;
+	private static final float SAW_BLADE_ROOT_OFFSET = 3f / 16f;
 
 	private final SpiderModel<RenderSpider> spiderModel;
 	private RenderSpider cachedSpider;
@@ -252,7 +253,10 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 				? AngleHelper.rad((AnimationTickHolder.getRenderTime(be.getLevel()) + partialTicks) * 24f)
 				: 0f;
 			renderSawBlade(state, ms, buffer, light, axisAlongFirst, spinAxis, spinAngle, 0f);
-			renderSawBlade(state, ms, buffer, light, axisAlongFirst, spinAxis, spinAngle, AngleHelper.rad(90));
+			ms.pushPose();
+			ms.translate(0, -SAW_BLADE_ROOT_OFFSET * 2f, 0);
+			renderSawBlade(state, ms, buffer, light, axisAlongFirst, spinAxis, spinAngle, AngleHelper.rad(180));
+			ms.popPose();
 		}
 		case SPOUT -> {
 			CachedBuffers.partial(AllPartialModels.SPOUT_TOP, state)
