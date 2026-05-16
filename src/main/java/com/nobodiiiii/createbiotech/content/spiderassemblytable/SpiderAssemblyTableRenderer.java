@@ -26,8 +26,8 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 
 	private static final ResourceLocation SPIDER_TEXTURE =
 		new ResourceLocation("minecraft", "textures/entity/spider/spider.png");
-	private static final float SPIDER_SCALE = 0.85f;
-	private static final float SPIDER_Y_OFFSET = 19f / 16f * SPIDER_SCALE;
+	private static final float SPIDER_SCALE = 1.0f;
+	private static final float SPIDER_Y_OFFSET = 0.5f + 15f / 16f * SPIDER_SCALE;
 	private static final float ACTIVE_LEG_BEND = 0.45f;
 	private static final float SHAFT_OFFSET = 0.34f;
 

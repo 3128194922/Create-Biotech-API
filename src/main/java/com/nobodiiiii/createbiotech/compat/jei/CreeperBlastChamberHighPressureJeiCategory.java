@@ -24,7 +24,7 @@ public class CreeperBlastChamberHighPressureJeiCategory extends PressingCategory
 	public static final RecipeType<PressingRecipe> TYPE =
 		RecipeType.create(CreateBiotech.MOD_ID, "creeper_blast_chamber_high_pressure", PressingRecipe.class);
 	private static final HighPressureCreeperDrawable HIGH_PRESSURE_CREEPER =
-		new HighPressureCreeperDrawable(46, 42, 18, -0.5625f, 0.2f, 8, 1.2f, 1f / 1.8f, 24);
+		new HighPressureCreeperDrawable(46, 42, 20, -0.5625f, -0.2f, 13, 39, 1.2f, 1f / 1.8f, 24);
 
 	public CreeperBlastChamberHighPressureJeiCategory() {
 		super(new CreateRecipeCategory.Info<>(TYPE,
@@ -37,15 +37,17 @@ public class CreeperBlastChamberHighPressureJeiCategory extends PressingCategory
 
 	@Override
 	public void setRecipe(IRecipeLayoutBuilder builder, PressingRecipe recipe, IFocusGroup focuses) {
-		builder.addSlot(RecipeIngredientRole.INPUT, 36, 51)
+		builder.addSlot(RecipeIngredientRole.INPUT, 27, 51)
 			.setBackground(getRenderedSlot(), -1, -1)
 			.addIngredients(recipe.getIngredients().get(0));
 
 		List<ProcessingOutput> results = recipe.getRollableResults();
-		int startY = 51 - (results.size() - 1) * 19 / 2;
+		boolean single = results.size() == 1;
 		for (int i = 0; i < results.size(); i++) {
 			ProcessingOutput output = results.get(i);
-			builder.addSlot(RecipeIngredientRole.OUTPUT, 142, startY + i * 19)
+			int xOffset = i % 2 == 0 ? 0 : 19;
+			int yOffset = (i / 2) * -19;
+			builder.addSlot(RecipeIngredientRole.OUTPUT, single ? 132 : 132 + xOffset, 51 + yOffset)
 				.setBackground(getRenderedSlot(output), -1, -1)
 				.addItemStack(output.getStack())
 				.addRichTooltipCallback(addStochasticTooltip(output));
@@ -55,9 +57,8 @@ public class CreeperBlastChamberHighPressureJeiCategory extends PressingCategory
 	@Override
 	public void draw(PressingRecipe recipe, mezz.jei.api.gui.ingredient.IRecipeSlotsView recipeSlotsView,
 		GuiGraphics graphics, double mouseX, double mouseY) {
-		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 136, 32);
-		AllGuiTextures.JEI_SHADOW.render(graphics, 81, 68);
-		HIGH_PRESSURE_CREEPER.draw(graphics, getBackground().getWidth() / 2 - HIGH_PRESSURE_CREEPER.getWidth() / 2 + 3,
-			8);
+		AllGuiTextures.JEI_SHADOW.render(graphics, 62, 57);
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 126, 29 + (recipe.getRollableResults().size() > 2 ? -19 : 0));
+		HIGH_PRESSURE_CREEPER.draw(graphics, getBackground().getWidth() / 2 - 13, 22);
 	}
 }
