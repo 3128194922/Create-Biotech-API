@@ -110,7 +110,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private static final int PRESSING_TRIGGER_TICKS = PressingBehaviour.CYCLE / 2;
 	private static final int OVERLOAD_THRESHOLD_RPM = 128;
 	private static final int OVERLOAD_POINTS_CAP = OVERLOAD_THRESHOLD_RPM * 64;
-	private static final int OVERLOAD_TNT_EQUIVALENT_PER_CREEPER = 4;
+	private static final int OVERLOAD_TNT_EQUIVALENT_PER_CREEPER = 2;
 	private static final int CHARGED_CREEPER_EQUIVALENT_MULTIPLIER = 2;
 	private static final float TNT_EXPLOSION_POWER = 4f;
 	private static final float HIGH_PRESSURE_COAL_TO_DIAMOND_CHANCE = 0.25f;
@@ -945,15 +945,44 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		if (level == null || level.isClientSide || !structureValid || structureOrigin == null)
 			return;
 
-		Vec3 center = Vec3.atCenterOf(structureOrigin.offset(structureSize / 2, 1, structureSize / 2));
 		setOverloadPoints(0);
 		int effectiveExplosionCount = creeperCounts.getExplosionEquivalentCount();
 		if (effectiveExplosionCount <= 0)
 			return;
 
 		destroyChamberStructureForOverload(level);
+		if (creeperCounts.chargedCount() > 0) {
+			triggerHighPressureOverload(level, effectiveExplosionCount);
+			return;
+		}
+
+		float explosionPower = effectiveExplosionCount * TNT_EXPLOSION_POWER;
+		explodeOverloadAt(level, getOverloadExplosionCenter(), explosionPower);
+	}
+
+	private void triggerHighPressureOverload(Level level, int effectiveExplosionCount) {
+		if (structureOrigin == null)
+			return;
+
 		float explosionPower = effectiveExplosionCount * OVERLOAD_TNT_EQUIVALENT_PER_CREEPER * TNT_EXPLOSION_POWER;
-		level.explode(null, center.x, center.y, center.z, explosionPower, Level.ExplosionInteraction.TNT);
+		double[] xCoords = {structureOrigin.getX() + 0.5d, structureOrigin.getX() + structureSize - 0.5d};
+		double[] yCoords = {structureOrigin.getY() + 0.5d, structureOrigin.getY() + 3.5d};
+		double[] zCoords = {structureOrigin.getZ() + 0.5d, structureOrigin.getZ() + structureSize - 0.5d};
+
+		for (double x : xCoords)
+			for (double y : yCoords)
+				for (double z : zCoords)
+					level.explode(null, x, y, z, explosionPower, Level.ExplosionInteraction.TNT);
+
+		explodeOverloadAt(level, getOverloadExplosionCenter(), explosionPower);
+	}
+
+	private Vec3 getOverloadExplosionCenter() {
+		return Vec3.atCenterOf(structureOrigin.offset(structureSize / 2, 1, structureSize / 2));
+	}
+
+	private void explodeOverloadAt(Level level, Vec3 position, float explosionPower) {
+		level.explode(null, position.x, position.y, position.z, explosionPower, Level.ExplosionInteraction.TNT);
 	}
 
 	private void destroyChamberStructureForOverload(Level level) {
