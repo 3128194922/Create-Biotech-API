@@ -61,7 +61,7 @@ public class SpiderAssemblyTableScreen extends AbstractContainerScreen<SpiderAss
 
 	private void drawFluidGauges(GuiGraphics graphics, int left, int top) {
 		for (int i = 0; i < SpiderAssemblyTableBlockEntity.LEG_COUNT; i++) {
-			int x = left + 36 + i * 18;
+			int x = left + 18 + i * 18;
 			int y = top + 91;
 			drawBorder(graphics, x - 1, y - 1, 14, 8, SLOT_BORDER_COLOR);
 			graphics.fill(x, y, x + 12, y + 6, GAUGE_EMPTY_COLOR);
@@ -79,7 +79,7 @@ public class SpiderAssemblyTableScreen extends AbstractContainerScreen<SpiderAss
 
 	private void renderFluidTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
 		for (int i = 0; i < SpiderAssemblyTableBlockEntity.LEG_COUNT; i++) {
-			int x = leftPos + 36 + i * 18;
+			int x = leftPos + 18 + i * 18;
 			int y = topPos + 91;
 			if (mouseX < x || mouseX >= x + 12 || mouseY < y || mouseY >= y + 6)
 				continue;

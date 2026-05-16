@@ -5,7 +5,6 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 
-import net.createmod.catnip.animation.AnimationTickHolder;
 import net.minecraft.client.model.SpiderModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
@@ -80,19 +79,16 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		ModelPart root = spiderModel.root();
 		root.getAllParts().forEach(ModelPart::resetPose);
 
-		float time = AnimationTickHolder.getRenderTime(be.getLevel());
-		float limbSwing = time * 0.16f;
-		float limbSwingAmount = be.getActiveSlot() >= 0 ? 0.35f : 0.0f;
-		spiderModel.setupAnim(spider, limbSwing, limbSwingAmount, time + partialTicks, 0.0f, 0.0f);
+		spiderModel.setupAnim(spider, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
-		ModelPart activeLeg = getAnimatedLeg(root, be.getActiveSlot());
+		int activeSlot = be.getActiveSlot();
+		ModelPart activeLeg = getAnimatedLeg(root, activeSlot);
 		if (activeLeg == null)
 			return;
 
 		float progress = be.getProcessingProgress(partialTicks);
 		float bend = Mth.sin(progress * Mth.PI) * ACTIVE_LEG_BEND;
-		boolean leftSide = be.getActiveSlot() < 3;
-		activeLeg.xRot -= bend * 0.35f;
+		boolean leftSide = activeSlot < 4;
 		activeLeg.zRot += leftSide ? bend : -bend;
 	}
 
@@ -100,10 +96,12 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		return switch (slot) {
 		case 0 -> root.getChild("left_front_leg");
 		case 1 -> root.getChild("left_middle_front_leg");
-		case 2 -> root.getChild("left_hind_leg");
-		case 3 -> root.getChild("right_front_leg");
-		case 4 -> root.getChild("right_middle_front_leg");
-		case 5 -> root.getChild("right_hind_leg");
+		case 2 -> root.getChild("left_middle_hind_leg");
+		case 3 -> root.getChild("left_hind_leg");
+		case 4 -> root.getChild("right_front_leg");
+		case 5 -> root.getChild("right_middle_front_leg");
+		case 6 -> root.getChild("right_middle_hind_leg");
+		case 7 -> root.getChild("right_hind_leg");
 		default -> null;
 		};
 	}

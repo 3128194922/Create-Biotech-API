@@ -32,7 +32,7 @@ public class SpiderAssemblyTableMenu extends AbstractContainerMenu {
 		this.blockEntity = blockEntity;
 
 		IItemHandler inventory = blockEntity.getInventory();
-		int xStart = 35;
+		int xStart = 17;
 		for (int i = 0; i < SpiderAssemblyTableBlockEntity.LEG_COUNT; i++)
 			addSlot(new MachineSlot(inventory, SpiderAssemblyTableBlockEntity.MACHINE_SLOT_START + i,
 				xStart + i * 18, 18));

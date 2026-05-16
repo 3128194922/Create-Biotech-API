@@ -59,7 +59,7 @@ import net.minecraftforge.items.wrapper.RecipeWrapper;
 
 public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implements MenuProvider {
 
-	public static final int LEG_COUNT = 6;
+	public static final int LEG_COUNT = 8;
 	public static final int MACHINE_SLOT_START = 0;
 	public static final int ITEM_CACHE_SLOT_START = MACHINE_SLOT_START + LEG_COUNT;
 	public static final int FLUID_CONTAINER_SLOT_START = ITEM_CACHE_SLOT_START + LEG_COUNT;
@@ -564,6 +564,31 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 
 		private SpiderAssemblyInventory() {
 			super(SLOT_COUNT);
+		}
+
+		@Override
+		public void deserializeNBT(CompoundTag nbt) {
+			super.deserializeNBT(nbt);
+			if (getSlots() == SLOT_COUNT)
+				return;
+
+			int oldSize = getSlots();
+			int oldLegCount = oldSize / 3;
+			ItemStack[] preserved = new ItemStack[oldSize];
+			for (int i = 0; i < oldSize; i++)
+				preserved[i] = getStackInSlot(i);
+
+			setSize(SLOT_COUNT);
+
+			if (oldLegCount <= 0 || oldSize != oldLegCount * 3)
+				return;
+
+			int copyCount = Math.min(oldLegCount, LEG_COUNT);
+			for (int i = 0; i < copyCount; i++) {
+				stacks.set(MACHINE_SLOT_START + i, preserved[i]);
+				stacks.set(ITEM_CACHE_SLOT_START + i, preserved[oldLegCount + i]);
+				stacks.set(FLUID_CONTAINER_SLOT_START + i, preserved[2 * oldLegCount + i]);
+			}
 		}
 
 		@Override
