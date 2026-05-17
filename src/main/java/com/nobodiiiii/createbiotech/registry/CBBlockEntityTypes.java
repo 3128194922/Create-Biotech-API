@@ -12,6 +12,7 @@ import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTa
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltBlockEntity;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltBlockEntity;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltBlockEntity;
+import com.nobodiiiii.createbiotech.content.slimeclutch.SlimeClutchBlockEntity;
 import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointBlockEntity;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.BlastProofChainDriveBlockEntity;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberBlockEntity;
@@ -68,6 +69,11 @@ public class CBBlockEntityTypes {
 	public static final RegistryObject<BlockEntityType<UniversalJointBlockEntity>> UNIVERSAL_JOINT =
 		BLOCK_ENTITY_TYPES.register("universal_joint",
 			() -> BlockEntityType.Builder.of(UniversalJointBlockEntity::new, CBBlocks.UNIVERSAL_JOINT.get())
+				.build(null));
+
+	public static final RegistryObject<BlockEntityType<SlimeClutchBlockEntity>> SLIME_CLUTCH =
+		BLOCK_ENTITY_TYPES.register("slime_clutch",
+			() -> BlockEntityType.Builder.of(SlimeClutchBlockEntity::new, CBBlocks.SLIME_CLUTCH.get())
 				.build(null));
 
 	public static final RegistryObject<BlockEntityType<FixedCarrotFishingRodBlockEntity>> FIXED_CARROT_FISHING_ROD =

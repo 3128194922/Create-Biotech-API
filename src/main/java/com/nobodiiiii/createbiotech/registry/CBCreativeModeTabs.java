@@ -31,6 +31,7 @@ public class CBCreativeModeTabs {
 				output.accept(CBItems.POWER_BELT_CONNECTOR.get());
 				output.accept(CBItems.HALF_SHAFT.get());
 				output.accept(CBItems.UNIVERSAL_JOINT.get());
+				output.accept(CBItems.SLIME_CLUTCH.get());
 				output.accept(CBItems.CARDBOARD_BOX.get());
 				output.accept(CBItems.LARGE_CARDBOARD_BOX.get());
 				output.accept(CBItems.BIO_PACKAGER.get());

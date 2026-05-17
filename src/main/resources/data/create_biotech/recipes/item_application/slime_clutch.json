@@ -1,0 +1,16 @@
+{
+  "type": "create:item_application",
+  "ingredients": [
+    {
+      "item": "create:andesite_casing"
+    },
+    {
+      "item": "create_biotech:universal_joint"
+    }
+  ],
+  "results": [
+    {
+      "item": "create_biotech:slime_clutch"
+    }
+  ]
+}

@@ -50,6 +50,9 @@ public class CBItems {
 	public static final RegistryObject<Item> UNIVERSAL_JOINT = ITEMS.register("universal_joint",
 		() -> new UniversalJointItem(new Item.Properties()));
 
+	public static final RegistryObject<Item> SLIME_CLUTCH = ITEMS.register("slime_clutch",
+		() -> new BlockItem(CBBlocks.SLIME_CLUTCH.get(), new Item.Properties()));
+
 	public static final RegistryObject<Item> CARDBOARD_BOX = ITEMS.register("cardboard_box",
 		() -> new CardboardBoxItem(new Item.Properties()));
 

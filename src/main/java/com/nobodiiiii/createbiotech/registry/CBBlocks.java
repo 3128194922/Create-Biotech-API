@@ -15,6 +15,7 @@ import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHelmBlock;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltBlock;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltBlock;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltBlock;
+import com.nobodiiiii.createbiotech.content.slimeclutch.SlimeClutchBlock;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatBlock;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlock;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableCogBlock;
@@ -73,6 +74,13 @@ public class CBBlocks {
 			.sound(SoundType.STONE)
 			.strength(0.8f)
 			.mapColor(MapColor.METAL)
+			.noOcclusion()));
+
+	public static final RegistryObject<SlimeClutchBlock> SLIME_CLUTCH = BLOCKS.register("slime_clutch",
+		() -> new SlimeClutchBlock(Block.Properties.of()
+			.sound(SoundType.WOOD)
+			.strength(0.8f)
+			.mapColor(MapColor.PODZOL)
 			.noOcclusion()));
 
 	public static final RegistryObject<FixedCarrotFishingRodBlock> FIXED_CARROT_FISHING_ROD =
