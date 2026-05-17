@@ -112,6 +112,7 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		ModelPart root = spiderModel.root();
 		ItemStackHandler inventory = be.getInventory();
 		int activeSlot = be.getActiveSlot();
+		float progress = be.getProcessingProgress(partialTicks);
 
 		for (int slot = 0; slot < SpiderAssemblyTableBlockEntity.LEG_COUNT; slot++) {
 			ItemStack machineStack = inventory.getStackInSlot(SpiderAssemblyTableBlockEntity.MACHINE_SLOT_START + slot);
@@ -141,9 +142,27 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 			float tipMy = 15f + anchorLength * axisY;
 			float tipMz = LEG_PIVOT_Z_MODEL[slot] + anchorLength * axisZ;
 
-			float dx = DEPOT_X_MODEL - tipMx;
-			float dy = DEPOT_Y_MODEL - tipMy;
-			float dz = DEPOT_Z_MODEL - tipMz;
+			boolean isActive = (slot == activeSlot);
+
+			float perpX = -sz;
+			float perpY = cz;
+			float perpZ = 0f;
+
+			float depotX = DEPOT_X_MODEL - tipMx;
+			float depotY = DEPOT_Y_MODEL - tipMy;
+			float depotZ = DEPOT_Z_MODEL - tipMz;
+			float depotLen = Mth.sqrt(depotX * depotX + depotY * depotY + depotZ * depotZ);
+			if (depotLen < 1e-5f)
+				continue;
+			depotX /= depotLen;
+			depotY /= depotLen;
+			depotZ /= depotLen;
+
+			float swing = isActive ? Mth.sin(progress * Mth.PI) : 0f;
+			float reachFactor = swing * swing;
+			float dx = perpX + (depotX - perpX) * reachFactor;
+			float dy = perpY + (depotY - perpY) * reachFactor;
+			float dz = perpZ + (depotZ - perpZ) * reachFactor;
 			float dLen = Mth.sqrt(dx * dx + dy * dy + dz * dz);
 			if (dLen < 1e-5f)
 				continue;
@@ -152,7 +171,6 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 			dz /= dLen;
 
 			Quaternionf orientation = shortestArcFromDownY(dx, dy, dz);
-			boolean isActive = (slot == activeSlot);
 
 			ms.pushPose();
 			ms.translate(tipMx / 16f, tipMy / 16f, tipMz / 16f);

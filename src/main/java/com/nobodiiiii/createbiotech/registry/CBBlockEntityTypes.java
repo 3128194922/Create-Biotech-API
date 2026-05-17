@@ -1,6 +1,7 @@
 package com.nobodiiiii.createbiotech.registry;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
+import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerBlockEntity;
 import com.nobodiiiii.createbiotech.content.evokertank.EvokerTankBlockEntity;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultBlockEntity;
 import com.nobodiiiii.createbiotech.content.fixedcarrotfishingrod.FixedCarrotFishingRodBlockEntity;
@@ -91,6 +92,12 @@ public class CBBlockEntityTypes {
 		BLOCK_ENTITY_TYPES.register("blast_proof_chain_drive",
 			() -> BlockEntityType.Builder
 				.of(BlastProofChainDriveBlockEntity::new, CBBlocks.BLAST_PROOF_CHAIN_DRIVE.get())
+				.build(null));
+
+	public static final RegistryObject<BlockEntityType<BioPackagerBlockEntity>> BIO_PACKAGER =
+		BLOCK_ENTITY_TYPES.register("bio_packager",
+			() -> BlockEntityType.Builder
+				.of(BioPackagerBlockEntity::new, CBBlocks.BIO_PACKAGER.get())
 				.build(null));
 
 	private CBBlockEntityTypes() {}

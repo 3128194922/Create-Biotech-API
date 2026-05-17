@@ -16,6 +16,7 @@
   "item.create_biotech.cardboard_box.filled": "Contains %s",
   "item.create_biotech.large_cardboard_box": "Large Cardboard Box",
   "item.create_biotech.large_cardboard_box.filled": "Contains %s",
+  "block.create_biotech.bio_packager": "Bio Packager",
   "block.create_biotech.schrodingers_cat": "Schrodinger's Cat",
   "block.create_biotech.spider_assembly_table": "Spider Assembly Table",
   "create_biotech.gui.spider_assembly_table.empty_fluid": "Empty",

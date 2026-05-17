@@ -1,6 +1,7 @@
 package com.nobodiiiii.createbiotech.client;
 
 import com.nobodiiiii.createbiotech.content.evokertank.EvokerTankRenderer;
+import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerRenderer;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.BlastProofChainDriveRenderer;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberBlock;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberRenderer;
@@ -82,6 +83,7 @@ public class CreateBiotechClient {
 			CreeperBlastChamberRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.GHAST_HOT_AIR_BALLOON_ASSEMBLY_STATION.get(),
 			GhastHotAirBalloonAssemblyStationRenderer::new);
+		event.registerBlockEntityRenderer(CBBlockEntityTypes.BIO_PACKAGER.get(), BioPackagerRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get(),
 			GhastHotAirBalloonEntityRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON_SEAT.get(),

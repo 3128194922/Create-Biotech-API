@@ -5,6 +5,7 @@ import java.util.EnumMap;
 import java.util.Map;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
+import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerBlock;
 import com.nobodiiiii.createbiotech.content.bufferpad.BufferPadBlock;
 import com.nobodiiiii.createbiotech.content.evokertank.EvokerTankBlock;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultBlock;
@@ -148,6 +149,13 @@ public class CBBlocks {
 					.requiresCorrectToolForDrops()
 					.noOcclusion()
 					.mapColor(MapColor.COLOR_GRAY)));
+
+	public static final RegistryObject<BioPackagerBlock> BIO_PACKAGER = BLOCKS.register("bio_packager",
+		() -> new BioPackagerBlock(Block.Properties.of()
+			.sound(SoundType.WOOD)
+			.strength(2.0f)
+			.mapColor(MapColor.WOOD)
+			.noOcclusion()));
 
 	public static final RegistryObject<ConnectedGlassBlock> BLAST_PROOF_FRAMED_GLASS =
 		BLOCKS.register("blast_proof_framed_glass",

@@ -21,7 +21,7 @@ import java.util.Set;
 @Mod.EventBusSubscriber(modid = CreateBiotech.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
 public class CardboardBoxHandler {
 
-	private static final Set<EntityType<?>> SMALL_MOBS = Set.of(
+	public static final Set<EntityType<?>> SMALL_MOBS = Set.of(
 		EntityType.SLIME,
 		EntityType.CAT,
 		EntityType.BAT,
@@ -71,6 +71,10 @@ public class CardboardBoxHandler {
 	}
 
 	private static boolean isSmallMob(LivingEntity target) {
+		return isSmallMobType(target);
+	}
+
+	public static boolean isSmallMobType(LivingEntity target) {
 		EntityType<?> type = target.getType();
 		if (target instanceof Slime slime && slime.getSize() > 1) return false;
 		if (target instanceof MagmaCube magmaCube && magmaCube.getSize() > 1) return false;
