@@ -10,6 +10,7 @@
     "BasinBlockEntityMixin",
     "BasinBlockMixin",
     "BasinOperatingBlockEntityMixin",
+    "BlockBreakingMovementBehaviourMixin",
     "BeltMovementHandlerMixin",
     "BeltFunnelBlockMixin",
     "BeltFunnelShapeMixin",

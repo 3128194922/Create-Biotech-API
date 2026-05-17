@@ -1,6 +1,5 @@
 package com.nobodiiiii.createbiotech.content.biopackager;
 
-import java.util.List;
 import java.util.Map;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
@@ -16,7 +15,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate.StructureBlockInfo;
-import net.minecraft.world.phys.AABB;
 import net.minecraftforge.event.entity.EntityLeaveLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDamageEvent;
 import net.minecraftforge.event.TickEvent;
@@ -40,39 +38,34 @@ public class BioPackagerContraptionCaptureHandler {
 		if (mob.getHealth() > event.getAmount())
 			return;
 
-		AABB searchBox = mob.getBoundingBox().inflate(2.0);
-		List<AbstractContraptionEntity> contraptions =
-			level.getEntitiesOfClass(AbstractContraptionEntity.class, searchBox);
-		if (contraptions.isEmpty())
+		AbstractContraptionEntity contraptionEntity =
+			BioPackagerContraptionDamageTracker.resolveDamagingContraption(target, event.getSource());
+		if (contraptionEntity == null)
+			return;
+		Contraption contraption = contraptionEntity.getContraption();
+		if (contraption == null)
 			return;
 
 		boolean smallMob = CardboardBoxHandler.isSmallMobType(mob);
+		BlockPos freePackagerLocal = findFreePackager(contraption, contraptionEntity.getUUID());
+		if (freePackagerLocal == null)
+			return;
 
-		for (AbstractContraptionEntity contraptionEntity : contraptions) {
-			Contraption contraption = contraptionEntity.getContraption();
-			if (contraption == null)
-				continue;
-			BlockPos freePackagerLocal = findFreePackager(contraption, contraptionEntity.getUUID());
-			if (freePackagerLocal == null)
-				continue;
+		ItemStack emptyBox = BioPackagerContraptionTracker.consumeBoxFromContraption(contraptionEntity, smallMob);
+		if (emptyBox.isEmpty())
+			return;
 
-			ItemStack emptyBox = BioPackagerContraptionTracker.consumeBoxFromContraption(contraptionEntity, smallMob);
-			if (emptyBox.isEmpty())
-				continue;
-
-			ItemStack filledBox = emptyBox.copy();
-			if (!CapturedEntityBoxHelper.captureEntity(filledBox, target)) {
-				// can't capture — refund box
-				BioPackagerContraptionTracker.startServerCapture(contraptionEntity, freePackagerLocal, emptyBox);
-				continue;
-			}
-
-			BioPackagerContraptionTracker.startServerCapture(contraptionEntity, freePackagerLocal, filledBox);
-
-			event.setCanceled(true);
-			target.discard();
+		ItemStack filledBox = emptyBox.copy();
+		if (!CapturedEntityBoxHelper.captureEntity(filledBox, target)) {
+			// can't capture — refund box
+			BioPackagerContraptionTracker.startServerCapture(contraptionEntity, freePackagerLocal, emptyBox);
 			return;
 		}
+
+		BioPackagerContraptionTracker.startServerCapture(contraptionEntity, freePackagerLocal, filledBox);
+
+		event.setCanceled(true);
+		target.discard();
 	}
 
 	@SubscribeEvent
