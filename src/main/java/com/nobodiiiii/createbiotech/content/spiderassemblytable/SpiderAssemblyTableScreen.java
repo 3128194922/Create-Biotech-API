@@ -1,29 +1,36 @@
 package com.nobodiiiii.createbiotech.content.spiderassemblytable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
+import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.nobodiiiii.createbiotech.CreateBiotech;
+import com.nobodiiiii.createbiotech.registry.CBBlocks;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 import com.simibubi.create.foundation.gui.menu.AbstractSimiContainerScreen;
 
+import net.createmod.catnip.gui.element.GuiGameElement;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.minecraftforge.fluids.FluidStack;
 import net.minecraftforge.fluids.capability.templates.FluidTank;
@@ -47,6 +54,8 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 	private static final int LOCK_GLYPH_UNLOCKED = 0xFF888888;
 	private static final int LOCK_GLYPH_LOCKED = 0xFFE6B33A;
 
+	private List<Rect2i> extraAreas = Collections.emptyList();
+
 	public SpiderAssemblyTableScreen(SpiderAssemblyTableMenu menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title);
 	}
@@ -63,6 +72,8 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 			addRenderableWidget(new LockButton(x, y, slotIdx,
 				b -> Minecraft.getInstance().gameMode.handleInventoryButtonClick(menu.containerId, slotIdx)));
 		}
+
+		extraAreas = ImmutableList.of(new Rect2i(leftPos + BG_WIDTH, topPos + BG_HEIGHT - 56, 64, 56));
 	}
 
 	@Override
@@ -76,12 +87,30 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 		graphics.drawString(font, title, leftPos + 15, topPos + 5, 0xFFE6E6E6, false);
 
 		drawHybridContents(graphics, leftPos, topPos);
+
+		renderTableModel(graphics);
+	}
+
+	private void renderTableModel(GuiGraphics graphics) {
+		BlockState state = CBBlocks.SPIDER_ASSEMBLY_TABLE.get().defaultBlockState();
+		if (state.hasProperty(SpiderAssemblyTableBlock.HORIZONTAL_FACING))
+			state = state.setValue(SpiderAssemblyTableBlock.HORIZONTAL_FACING, Direction.SOUTH);
+		GuiGameElement.of(state).<GuiGameElement.GuiRenderBuilder>at(
+			leftPos + BG_WIDTH + 4, topPos + BG_HEIGHT + 4, 100)
+			.scale(40)
+			.rotate(-22, 63, 0)
+			.render(graphics);
 	}
 
 	@Override
 	protected void renderTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
 		renderFluidOverlayTooltips(graphics, mouseX, mouseY);
 		super.renderTooltip(graphics, mouseX, mouseY);
+	}
+
+	@Override
+	public List<Rect2i> getExtraAreas() {
+		return extraAreas;
 	}
 
 	private void drawHybridContents(GuiGraphics graphics, int left, int top) {

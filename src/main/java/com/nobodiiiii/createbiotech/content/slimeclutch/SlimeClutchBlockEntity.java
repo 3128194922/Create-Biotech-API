@@ -1,11 +1,14 @@
 package com.nobodiiiii.createbiotech.content.slimeclutch;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.reflect.Method;
 import java.util.ArrayDeque;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Queue;
-import java.util.Set;
 
 import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
 import com.simibubi.create.content.kinetics.RotationPropagator;
@@ -16,7 +19,6 @@ import com.simibubi.create.content.kinetics.transmission.SplitShaftBlockEntity;
 import net.createmod.catnip.data.Iterate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -27,15 +29,22 @@ public class SlimeClutchBlockEntity extends SplitShaftBlockEntity {
 	private static final int MAX_WALK = 1024;
 	private static final float SAFETY_MARGIN = 0.001f;
 
+	private static final MethodHandle ROTATION_MODIFIER = resolveModifier();
+
+	private static MethodHandle resolveModifier() {
+		try {
+			Method m = RotationPropagator.class.getDeclaredMethod(
+				"getRotationSpeedModifier", KineticBlockEntity.class, KineticBlockEntity.class);
+			m.setAccessible(true);
+			return MethodHandles.lookup().unreflect(m);
+		} catch (ReflectiveOperationException e) {
+			return null;
+		}
+	}
+
 	private boolean pendingTrip;
 	private boolean processingTransition;
-	private boolean requestRecheck;
 	private int recheckCounter;
-
-	private float preTripStress;
-	private boolean estimateValid;
-	private float downstreamStressBaseline;
-	private float downstreamImpactBaseline;
 
 	public SlimeClutchBlockEntity(BlockPos pos, BlockState state) {
 		super(CBBlockEntityTypes.SLIME_CLUTCH.get(), pos, state);
@@ -55,21 +64,8 @@ public class SlimeClutchBlockEntity extends SplitShaftBlockEntity {
 		super.updateFromNetwork(maxStress, currentStress, networkSize);
 		if (level == null || level.isClientSide || processingTransition)
 			return;
-		boolean powered = getBlockState().getValue(BlockStateProperties.POWERED);
-		if (!powered) {
-			if (isOverStressed()) {
-				preTripStress = currentStress;
-				pendingTrip = true;
-			}
-		} else {
-			if (!estimateValid && networkSize > 0) {
-				downstreamStressBaseline = Math.max(0f, preTripStress - currentStress);
-				downstreamImpactBaseline = walkDownstreamImpactSum();
-				estimateValid = true;
-			} else {
-				requestRecheck = true;
-			}
-		}
+		if (!getBlockState().getValue(BlockStateProperties.POWERED) && isOverStressed())
+			pendingTrip = true;
 	}
 
 	@Override
@@ -78,50 +74,23 @@ public class SlimeClutchBlockEntity extends SplitShaftBlockEntity {
 		if (level == null || level.isClientSide)
 			return;
 
-		BlockState state = getBlockState();
-		boolean powered = state.getValue(BlockStateProperties.POWERED);
+		boolean powered = getBlockState().getValue(BlockStateProperties.POWERED);
 
 		if (!powered) {
 			if (pendingTrip) {
 				pendingTrip = false;
-				estimateValid = false;
 				performTransition(true);
 				recheckCounter = RECHECK_PERIOD;
-				requestRecheck = false;
 			}
 			return;
 		}
 
 		pendingTrip = false;
-
-		if (requestRecheck) {
-			requestRecheck = false;
-			recheckCounter = RECHECK_PERIOD;
-			tryRecover();
-			return;
-		}
-
 		if (--recheckCounter > 0)
 			return;
 		recheckCounter = RECHECK_PERIOD;
-		tryRecover();
-	}
-
-	private void tryRecover() {
-		if (!estimateValid)
-			return;
-		float currentImpactSum = walkDownstreamImpactSum();
-		float estimate;
-		if (downstreamImpactBaseline <= 0f)
-			estimate = downstreamStressBaseline;
-		else
-			estimate = downstreamStressBaseline * (currentImpactSum / downstreamImpactBaseline);
-
-		float remainingCapacity = capacity - stress;
-		if (remainingCapacity >= estimate + SAFETY_MARGIN) {
-			estimateValid = false;
+		if (canSafelyMerge())
 			performTransition(false);
-		}
 	}
 
 	private void performTransition(boolean toPowered) {
@@ -136,38 +105,64 @@ public class SlimeClutchBlockEntity extends SplitShaftBlockEntity {
 		}
 	}
 
-	private float walkDownstreamImpactSum() {
+	private boolean canSafelyMerge() {
 		if (!hasSource() || level == null)
-			return 0f;
+			return false;
+		float sourceSpeed = getSpeed();
+		if (sourceSpeed == 0)
+			return false;
+
 		Direction downstreamFace = getSourceFacing().getOpposite();
 		BlockPos startPos = getBlockPos().relative(downstreamFace);
 		BlockEntity firstBe = level.getBlockEntity(startPos);
 		if (!(firstBe instanceof KineticBlockEntity firstKbe))
-			return 0f;
+			return true;
 
-		Set<BlockPos> visited = new HashSet<>();
-		visited.add(getBlockPos());
-		visited.add(startPos);
+		Map<BlockPos, Float> simSpeed = new HashMap<>();
+		simSpeed.put(startPos, sourceSpeed);
 		Queue<KineticBlockEntity> frontier = new ArrayDeque<>();
 		frontier.add(firstKbe);
 
-		float impactSum = 0f;
+		float subnetStress = 0f;
+		float subnetCapacity = 0f;
 		int walked = 0;
 
 		while (!frontier.isEmpty()) {
 			if (++walked > MAX_WALK)
-				return Float.MAX_VALUE;
+				return false;
 			KineticBlockEntity kbe = frontier.poll();
-			impactSum += kbe.calculateStressApplied();
+			BlockPos kbePos = kbe.getBlockPos();
+			float kbeSpeed = simSpeed.get(kbePos);
+
+			subnetStress += kbe.calculateStressApplied() * Math.abs(kbeSpeed);
+			if (kbe.isSource())
+				subnetCapacity += kbe.calculateAddedStressCapacity() * Math.abs(kbe.getGeneratedSpeed());
 
 			for (KineticBlockEntity neighbour : connectedKinetics(kbe)) {
 				BlockPos np = neighbour.getBlockPos();
-				if (!visited.add(np))
+				if (np.equals(getBlockPos()) || simSpeed.containsKey(np))
 					continue;
+				float modifier = rotationModifier(kbe, neighbour);
+				if (modifier == 0f)
+					continue;
+				simSpeed.put(np, kbeSpeed * modifier);
 				frontier.add(neighbour);
 			}
 		}
-		return impactSum;
+
+		float mergedCapacity = capacity + subnetCapacity;
+		float mergedStress = stress + subnetStress;
+		return mergedCapacity >= mergedStress + SAFETY_MARGIN;
+	}
+
+	private static float rotationModifier(KineticBlockEntity from, KineticBlockEntity to) {
+		if (ROTATION_MODIFIER == null)
+			return RotationPropagator.isConnected(from, to) || RotationPropagator.isConnected(to, from) ? 1f : 0f;
+		try {
+			return (float) ROTATION_MODIFIER.invokeExact(from, to);
+		} catch (Throwable t) {
+			return RotationPropagator.isConnected(from, to) || RotationPropagator.isConnected(to, from) ? 1f : 0f;
+		}
 	}
 
 	private List<KineticBlockEntity> connectedKinetics(KineticBlockEntity from) {
@@ -191,29 +186,5 @@ public class SlimeClutchBlockEntity extends SplitShaftBlockEntity {
 			result.add(kbe);
 		}
 		return result;
-	}
-
-	@Override
-	protected void write(CompoundTag compound, boolean clientPacket) {
-		super.write(compound, clientPacket);
-		if (clientPacket)
-			return;
-		if (estimateValid) {
-			compound.putBoolean("EstimateValid", true);
-			compound.putFloat("DownstreamStress", downstreamStressBaseline);
-			compound.putFloat("DownstreamImpact", downstreamImpactBaseline);
-		}
-		compound.putFloat("PreTripStress", preTripStress);
-	}
-
-	@Override
-	protected void read(CompoundTag compound, boolean clientPacket) {
-		super.read(compound, clientPacket);
-		if (clientPacket)
-			return;
-		estimateValid = compound.getBoolean("EstimateValid");
-		downstreamStressBaseline = compound.getFloat("DownstreamStress");
-		downstreamImpactBaseline = compound.getFloat("DownstreamImpact");
-		preTripStress = compound.getFloat("PreTripStress");
 	}
 }
