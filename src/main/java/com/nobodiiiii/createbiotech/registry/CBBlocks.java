@@ -17,6 +17,7 @@ import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltBlock;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltBlock;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatBlock;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlock;
+import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableCogBlock;
 import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointBlock;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.BlastProofChainDriveBlock;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberBlock;
@@ -108,6 +109,14 @@ public class CBBlocks {
 	public static final RegistryObject<SpiderAssemblyTableBlock> SPIDER_ASSEMBLY_TABLE =
 		BLOCKS.register("spider_assembly_table",
 			() -> new SpiderAssemblyTableBlock(Block.Properties.of()
+				.sound(SoundType.WOOL)
+				.strength(1.2f)
+				.mapColor(MapColor.COLOR_BLACK)
+				.noOcclusion()));
+
+	public static final RegistryObject<SpiderAssemblyTableCogBlock> SPIDER_ASSEMBLY_TABLE_COG =
+		BLOCKS.register("spider_assembly_table_cog",
+			() -> new SpiderAssemblyTableCogBlock(Block.Properties.of()
 				.sound(SoundType.WOOL)
 				.strength(1.2f)
 				.mapColor(MapColor.COLOR_BLACK)

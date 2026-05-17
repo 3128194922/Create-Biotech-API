@@ -7,6 +7,7 @@ import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionPro
 import com.nobodiiiii.createbiotech.content.fixedcarrotfishingrod.FixedCarrotFishingRodBlockEntity;
 import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHotAirBalloonAssemblyStationBlockEntity;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatBlockEntity;
+import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableCogBlockEntity;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlockEntity;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltBlockEntity;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltBlockEntity;
@@ -51,6 +52,12 @@ public class CBBlockEntityTypes {
 		BLOCK_ENTITY_TYPES.register("spider_assembly_table",
 			() -> BlockEntityType.Builder
 				.of(SpiderAssemblyTableBlockEntity::new, CBBlocks.SPIDER_ASSEMBLY_TABLE.get())
+				.build(null));
+
+	public static final RegistryObject<BlockEntityType<SpiderAssemblyTableCogBlockEntity>> SPIDER_ASSEMBLY_TABLE_COG =
+		BLOCK_ENTITY_TYPES.register("spider_assembly_table_cog",
+			() -> BlockEntityType.Builder
+				.of(SpiderAssemblyTableCogBlockEntity::new, CBBlocks.SPIDER_ASSEMBLY_TABLE_COG.get())
 				.build(null));
 
 	public static final RegistryObject<BlockEntityType<EvokerTankBlockEntity>> EVOKER_TANK =

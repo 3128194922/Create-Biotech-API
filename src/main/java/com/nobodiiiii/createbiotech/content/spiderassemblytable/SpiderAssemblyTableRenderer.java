@@ -52,7 +52,6 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 	private static final float SPIDER_SCALE = 1.0f;
 	private static final float SPIDER_Y_OFFSET = 0.5f + 15f / 16f * SPIDER_SCALE;
 	private static final float ACTIVE_LEG_BEND = (float) Math.toRadians(45);
-	private static final float SHAFT_OFFSET = 0.34f;
 	private static final float MACHINE_SCALE = 0.4f;
 	private static final float LEG_LENGTH_MODEL = 15.0f;
 	private static final float LEG_PIVOT_X_MODEL = 4.0f;
@@ -86,14 +85,6 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 
 		Direction facing = state.getValue(SpiderAssemblyTableBlock.FACING);
 		renderSpider(be, partialTicks, ms, buffer, light, facing);
-
-		BlockState shaftState = shaft(getRotationAxisOf(be));
-		RenderType shaftRenderType = getRenderType(be, shaftState);
-		Direction tail = facing.getOpposite();
-		ms.pushPose();
-		ms.translate(tail.getStepX() * SHAFT_OFFSET, 0, tail.getStepZ() * SHAFT_OFFSET);
-		renderRotatingBuffer(be, getRotatedModel(be, shaftState), ms, buffer.getBuffer(shaftRenderType), light);
-		ms.popPose();
 	}
 
 	private void renderSpider(SpiderAssemblyTableBlockEntity be, float partialTicks, PoseStack ms,

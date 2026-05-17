@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "create:block/cogwheel", "x": 90, "y": 180 },
+    "facing=east": { "model": "create:block/cogwheel", "x": 90, "y": 90 },
+    "facing=south": { "model": "create:block/cogwheel", "x": 90, "y": 180 },
+    "facing=west": { "model": "create:block/cogwheel", "x": 90, "y": 90 }
+  }
+}

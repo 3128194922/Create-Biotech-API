@@ -23,6 +23,7 @@ import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatRende
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltHelper;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltRenderer;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltSpriteShifts;
+import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableCogRenderer;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableRenderer;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableScreen;
 import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointRenderer;
@@ -75,6 +76,8 @@ public class CreateBiotechClient {
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.SCHRODINGERS_CAT.get(), SchrodingersCatRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.SPIDER_ASSEMBLY_TABLE.get(),
 			SpiderAssemblyTableRenderer::new);
+		event.registerBlockEntityRenderer(CBBlockEntityTypes.SPIDER_ASSEMBLY_TABLE_COG.get(),
+			SpiderAssemblyTableCogRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.FIXED_CARROT_FISHING_ROD.get(),
 			FixedCarrotFishingRodRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.BLAST_PROOF_CHAIN_DRIVE.get(),
