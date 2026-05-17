@@ -74,6 +74,7 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 	private final FluidTank[] fluidTanks = new FluidTank[LEG_COUNT];
 	private final ItemStack[] itemLocks = new ItemStack[LEG_COUNT];
 	private final FluidStack[] fluidLocks = new FluidStack[LEG_COUNT];
+	private final boolean[] slotBlocked = new boolean[LEG_COUNT];
 	private final LazyOptional<IItemHandler> itemCapability = LazyOptional.of(() -> new HybridItemWrapper());
 	private final LazyOptional<IFluidHandler> fluidCapability = LazyOptional.of(() -> new SpiderFluidHandler());
 
@@ -133,6 +134,10 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 		for (FluidStack lock : fluidLocks)
 			fluidLocksTag.add(lock.writeToNBT(new CompoundTag()));
 		tag.put("FluidLocks", fluidLocksTag);
+		byte[] blockedBytes = new byte[LEG_COUNT];
+		for (int i = 0; i < LEG_COUNT; i++)
+			blockedBytes[i] = slotBlocked[i] ? (byte) 1 : (byte) 0;
+		tag.putByteArray("BlockedSlots", blockedBytes);
 		tag.putInt("NextSlot", nextSlot);
 		tag.putInt("ActiveSlot", activeSlot);
 		tag.putInt("ActiveMachine", activeMachine == null ? -1 : activeMachine.ordinal());
@@ -162,6 +167,9 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 			fluidLocks[i] = i < fluidLocksTag.size()
 				? FluidStack.loadFluidStackFromNBT(fluidLocksTag.getCompound(i))
 				: FluidStack.EMPTY;
+		byte[] blockedBytes = tag.getByteArray("BlockedSlots");
+		for (int i = 0; i < LEG_COUNT; i++)
+			slotBlocked[i] = i < blockedBytes.length && blockedBytes[i] != 0;
 		nextSlot = Mth.clamp(tag.getInt("NextSlot"), 0, LEG_COUNT - 1);
 		activeSlot = tag.getInt("ActiveSlot");
 		int activeMachineId = tag.getInt("ActiveMachine");
@@ -270,7 +278,11 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 	}
 
 	public boolean isHybridSlotLocked(int hybridIndex) {
-		return !itemLocks[hybridIndex].isEmpty() || !fluidLocks[hybridIndex].isEmpty();
+		return !itemLocks[hybridIndex].isEmpty() || !fluidLocks[hybridIndex].isEmpty() || slotBlocked[hybridIndex];
+	}
+
+	public boolean isHybridSlotBlocked(int hybridIndex) {
+		return slotBlocked[hybridIndex];
 	}
 
 	public boolean canHybridSlotAcceptItem(int hybridIndex, ItemStack stack) {
@@ -278,6 +290,8 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 			return false;
 		if (stack.isEmpty())
 			return true;
+		if (slotBlocked[hybridIndex])
+			return false;
 		if (!fluidTanks[hybridIndex].getFluid().isEmpty())
 			return false;
 		if (!fluidLocks[hybridIndex].isEmpty())
@@ -293,6 +307,8 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 			return false;
 		if (stack.isEmpty())
 			return true;
+		if (slotBlocked[hybridIndex])
+			return false;
 		if (!inventory.getStackInSlot(HYBRID_SLOT_START + hybridIndex).isEmpty())
 			return false;
 		if (!itemLocks[hybridIndex].isEmpty())
@@ -322,6 +338,7 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 				lock.setAmount(1);
 				fluidLocks[hybridIndex] = lock;
 				itemLocks[hybridIndex] = ItemStack.EMPTY;
+				slotBlocked[hybridIndex] = false;
 			} else {
 				if (!fluidTanks[hybridIndex].getFluid().isEmpty())
 					return;
@@ -332,11 +349,13 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 				lock.setCount(1);
 				itemLocks[hybridIndex] = lock;
 				fluidLocks[hybridIndex] = FluidStack.EMPTY;
+				slotBlocked[hybridIndex] = false;
 			}
 		} else {
 			if (isHybridSlotLocked(hybridIndex)) {
 				itemLocks[hybridIndex] = ItemStack.EMPTY;
 				fluidLocks[hybridIndex] = FluidStack.EMPTY;
+				slotBlocked[hybridIndex] = false;
 			} else {
 				ItemStack slotItem = inventory.getStackInSlot(HYBRID_SLOT_START + hybridIndex);
 				FluidStack slotFluid = fluidTanks[hybridIndex].getFluid();
@@ -348,6 +367,8 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 					FluidStack lock = slotFluid.copy();
 					lock.setAmount(1);
 					fluidLocks[hybridIndex] = lock;
+				} else {
+					slotBlocked[hybridIndex] = true;
 				}
 			}
 		}
@@ -396,7 +417,7 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 		boolean changed = false;
 
 		FluidStack itemFluid = itemHandler.getTanks() > 0 ? itemHandler.getFluidInTank(0).copy() : FluidStack.EMPTY;
-		if (!itemFluid.isEmpty()) {
+		if (!itemFluid.isEmpty() && canHybridTankAcceptFluid(hybridIndex, itemFluid)) {
 			int canFill = tank.fill(itemFluid, FluidAction.SIMULATE);
 			if (canFill > 0) {
 				FluidStack drained = itemHandler.drain(canFill, FluidAction.EXECUTE);

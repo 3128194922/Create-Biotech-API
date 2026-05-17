@@ -15,6 +15,7 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -111,10 +112,14 @@ public class SpiderAssemblyTableScreen extends AbstractContainerScreen<SpiderAss
 			if (!slotItem.isEmpty())
 				continue;
 
+			if (menu.getBlockEntity().isHybridSlotBlocked(i)) {
+				drawBlockedMark(graphics, x, y);
+				continue;
+			}
 			FluidStack fluidLock = menu.getBlockEntity().getFluidLock(i);
 			ItemStack itemLock = menu.getBlockEntity().getItemLock(i);
 			if (!fluidLock.isEmpty()) {
-				drawFluidSprite(graphics, x, y, fluidLock, Math.max(1, fluidLock.getAmount()), 0.35f);
+				drawFluidSprite(graphics, x, y, fluidLock, Math.max(1, fluidLock.getAmount()), 0.4f);
 			} else if (!itemLock.isEmpty()) {
 				drawGhostItem(graphics, itemLock, x, y);
 			}
@@ -126,7 +131,16 @@ public class SpiderAssemblyTableScreen extends AbstractContainerScreen<SpiderAss
 		RenderSystem.setShaderColor(1f, 1f, 1f, 0.4f);
 		graphics.renderItem(stack, x, y);
 		RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+		graphics.fill(RenderType.guiOverlay(), x, y, x + 16, y + 16, 0x88202020);
 		RenderSystem.disableBlend();
+	}
+
+	private void drawBlockedMark(GuiGraphics graphics, int x, int y) {
+		int color = 0xFFB04040;
+		for (int i = 0; i < 14; i++) {
+			graphics.fill(x + 1 + i, y + 1 + i, x + 2 + i, y + 2 + i, color);
+			graphics.fill(x + 1 + i, y + 14 - i, x + 2 + i, y + 15 - i, color);
+		}
 	}
 
 	private void renderFluidOverlayTooltips(GuiGraphics graphics, int mouseX, int mouseY) {
@@ -166,17 +180,19 @@ public class SpiderAssemblyTableScreen extends AbstractContainerScreen<SpiderAss
 			filled = height;
 		int maskTop = height - filled;
 
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, InventoryMenu.BLOCK_ATLAS);
-		Matrix4f matrix = graphics.pose().last().pose();
 		setShaderColorFromInt(color, alphaMul);
 
+		Matrix4f matrix = graphics.pose().last().pose();
 		float uMin = sprite.getU0();
 		float uMax = sprite.getU1();
 		float vMin = sprite.getV0();
 		float vMax = sprite.getV1();
 		float vMinAdjusted = vMin + (maskTop / 16f) * (vMax - vMin);
 
-		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		Tesselator tessellator = Tesselator.getInstance();
 		BufferBuilder buffer = tessellator.getBuilder();
 		buffer.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
