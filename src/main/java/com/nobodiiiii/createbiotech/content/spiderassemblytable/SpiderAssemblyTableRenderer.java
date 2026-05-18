@@ -3,6 +3,7 @@ package com.nobodiiiii.createbiotech.content.spiderassemblytable;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
+import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlockEntity.MachineKind;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
@@ -48,7 +49,10 @@ import org.joml.Vector3f;
 public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<SpiderAssemblyTableBlockEntity> {
 
 	private static final ResourceLocation SPIDER_TEXTURE =
-		new ResourceLocation("minecraft", "textures/entity/spider/spider.png");
+		CreateBiotech.asResource("textures/entity/spider_assembly_table/spider.png");
+	private static final ResourceLocation SPIDER_EYES_TEXTURE =
+		CreateBiotech.asResource("textures/entity/spider_assembly_table/spider_eyes.png");
+	private static final int EYES_LIGHT = 15728640;
 	private static final float SPIDER_SCALE = 1.0f;
 	private static final float SPIDER_Y_OFFSET = 0.5f + 15f / 16f * SPIDER_SCALE;
 	private static final float ACTIVE_LEG_BEND = (float) Math.toRadians(45);
@@ -101,6 +105,8 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 		ms.scale(-SPIDER_SCALE, -SPIDER_SCALE, SPIDER_SCALE);
 		VertexConsumer spiderBuffer = buffer.getBuffer(spiderModel.renderType(SPIDER_TEXTURE));
 		spiderModel.renderToBuffer(ms, spiderBuffer, light, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+		VertexConsumer spiderEyesBuffer = buffer.getBuffer(RenderType.eyes(SPIDER_EYES_TEXTURE));
+		spiderModel.renderToBuffer(ms, spiderEyesBuffer, EYES_LIGHT, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 		renderLegMachines(be, partialTicks, ms, buffer, light);
 		ms.popPose();
 	}

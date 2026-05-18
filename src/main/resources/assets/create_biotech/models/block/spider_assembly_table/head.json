@@ -1,11 +1,12 @@
 {
   "ambientocclusion": false,
   "textures": {
-    "particle": "minecraft:entity/spider/spider",
-    "spider": "minecraft:entity/spider/spider"
+    "particle": "create_biotech:entity/spider_assembly_table/spider",
+    "spider": "create_biotech:entity/spider_assembly_table/spider"
   },
   "elements": [
     {
+      "shade": false,
       "from": [4.5, 4, 2.5],
       "to": [11.5, 9, 6.5],
       "faces": {

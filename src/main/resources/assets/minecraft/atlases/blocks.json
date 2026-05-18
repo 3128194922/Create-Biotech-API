@@ -82,7 +82,7 @@
     },
     {
       "type": "single",
-      "resource": "minecraft:entity/spider/spider"
+      "resource": "create_biotech:entity/spider_assembly_table/spider"
     }
   ]
 }

@@ -1,6 +1,9 @@
 package com.nobodiiiii.createbiotech.content.spiderassemblytable;
 
+import java.util.function.Consumer;
+
 import com.simibubi.create.AllBlocks;
+import com.simibubi.create.foundation.item.render.SimpleCustomRenderer;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -10,11 +13,20 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraftforge.api.distmarker.Dist;
+import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 public class SpiderAssemblyTableItem extends BlockItem {
 
 	public SpiderAssemblyTableItem(Block block, Properties properties) {
 		super(block, properties);
+	}
+
+	@Override
+	@OnlyIn(Dist.CLIENT)
+	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
+		consumer.accept(SimpleCustomRenderer.create(this, new SpiderAssemblyTableItemRenderer()));
 	}
 
 	@Override
