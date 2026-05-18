@@ -2,7 +2,6 @@ package com.nobodiiiii.createbiotech.content.squidprinter;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 import com.simibubi.create.AllPartialModels;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour;
 import com.simibubi.create.foundation.blockEntity.behaviour.fluid.SmartFluidTankBehaviour.TankSegment;
@@ -114,19 +113,21 @@ public class SquidPrinterRenderer extends SafeBlockEntityRenderer<SquidPrinterBl
 
 	private void renderSquid(SquidPrinterBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
 		int light) {
-		float animationTime = be.getLevel() == null ? partialTicks : be.getLevel().getGameTime() + partialTicks;
-
 		ms.pushPose();
 		ms.translate(0.5d, 1.0d, 0.5d);
-		float scale = 0.32f;
+		float scale = 0.8f;
 		ms.scale(-scale, -scale, scale);
-		ms.mulPose(Axis.XP.rotationDegrees(180.0f));
 
 		ModelPart root = squidModel.root();
 		root.getAllParts().forEach(ModelPart::resetPose);
-		float armRot = (Mth.cos(animationTime * 0.06662f) + 1.0f) * 0.3f;
-		float tentacleSwing = be.isRunning() ? armRot : 0.25f;
-		squidModel.setupAnim(null, 0.0f, 0.0f, animationTime, 0.0f, tentacleSwing);
+
+		float tentacleAngle = 0.0f;
+		if (be.isRunning() && be.getLevel() != null) {
+			float time = be.getLevel().getGameTime() + partialTicks;
+			float phase = (Mth.sin(time * 0.15f) + 1.0f) * 0.5f;
+			tentacleAngle = phase * (Mth.PI / 2.0f);
+		}
+		squidModel.setupAnim(null, 0.0f, 0.0f, tentacleAngle, 0.0f, 0.0f);
 
 		VertexConsumer consumer = buffer.getBuffer(squidModel.renderType(SQUID_TEXTURE));
 		squidModel.renderToBuffer(ms, consumer, light, OverlayTexture.NO_OVERLAY, 1.0f, 1.0f, 1.0f, 1.0f);
