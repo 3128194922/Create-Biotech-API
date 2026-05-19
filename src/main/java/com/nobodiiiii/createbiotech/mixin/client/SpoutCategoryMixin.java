@@ -22,6 +22,6 @@ public abstract class SpoutCategoryMixin {
 		double mouseY, CallbackInfo ci) {
 		if (!SquidPrinterJeiRecipes.isSquidPrinterSpoutFilling(recipe.getId()))
 			return;
-		SquidJeiRenderer.render(graphics, 88, 56, 8.5f);
+		SquidJeiRenderer.render(graphics, 88, 56, 1.0f);
 	}
 }

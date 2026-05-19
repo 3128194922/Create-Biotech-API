@@ -62,7 +62,7 @@ public class SquidPrinterJeiCategory extends AbstractRecipeCategory<SquidPrinter
 		spout.withFluids(recipe.requiredFluid()
 			.getMatchingFluidStacks())
 			.draw(graphics, WIDTH / 2 - 13, 22);
-		SquidJeiRenderer.render(graphics, 88, 56, 8.5f);
+		SquidJeiRenderer.render(graphics, 88, 56, 1.0f);
 	}
 
 	@Override

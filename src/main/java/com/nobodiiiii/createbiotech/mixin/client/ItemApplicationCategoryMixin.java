@@ -22,6 +22,6 @@ public abstract class ItemApplicationCategoryMixin {
 		double mouseY, CallbackInfo ci) {
 		if (!SquidPrinterJeiRecipes.isSquidPrinterItemApplication(recipe.getId()))
 			return;
-		SquidJeiRenderer.render(graphics, 88, 48, 8.5f);
+		SquidJeiRenderer.render(graphics, 88, 48, 1.0f);
 	}
 }
