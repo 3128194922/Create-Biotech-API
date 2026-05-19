@@ -7,6 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 
 import net.createmod.catnip.animation.AnimationTickHolder;
+import net.createmod.catnip.gui.UIRenderHelper;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.model.SquidModel;
@@ -27,9 +28,7 @@ public final class SquidJeiRenderer {
 	private static final float RUN_MAX_TENTACLE_ANGLE = Mth.PI * 0.25f;
 	private static final float GUI_BASE_SCALE = 8.5f;
 	private static final float GUI_Y_OFFSET = -48.0f;
-	private static final float SPOUT_SCENE_X_OFFSET = 13.0f;
-	private static final float SPOUT_SCENE_Y_OFFSET = -14.0f;
-	private static final float SPOUT_SCENE_Z_OFFSET = 0.0f;
+	private static final float SQUID_BLOCK_SCALE = 0.8f;
 	private static final int TENTACLE_COUNT = 8;
 	private static final int FULL_BRIGHT = 0x00F000F0;
 
@@ -43,8 +42,19 @@ public final class SquidJeiRenderer {
 		renderWithTransform(graphics, centerX, centerY + GUI_Y_OFFSET, 100.0f, scale);
 	}
 
-	public static void renderInSpoutScene(GuiGraphics graphics, float scale) {
-		renderWithTransform(graphics, SPOUT_SCENE_X_OFFSET, SPOUT_SCENE_Y_OFFSET, SPOUT_SCENE_Z_OFFSET, scale);
+	public static void renderInCurrentScene(GuiGraphics graphics, int blockScale) {
+		PoseStack poseStack = graphics.pose();
+		poseStack.pushPose();
+
+		poseStack.scale(blockScale, blockScale, blockScale);
+		UIRenderHelper.flipForGuiRender(poseStack);
+
+		poseStack.translate(0.5d, 1.0d, 0.5d);
+		poseStack.scale(-SQUID_BLOCK_SCALE, -SQUID_BLOCK_SCALE, SQUID_BLOCK_SCALE);
+
+		renderSquidModel(poseStack, graphics.bufferSource(), FULL_BRIGHT, AnimationTickHolder.getRenderTime());
+
+		poseStack.popPose();
 	}
 
 	private static void renderWithTransform(GuiGraphics graphics, float x, float y, float z, float scale) {

@@ -35,8 +35,6 @@ public class AnimatedSquidSpout extends AnimatedKinetics {
 		matrixStack.pushPose();
 		matrixStack.translate(xOffset, yOffset, 100);
 
-		SquidJeiRenderer.renderInSpoutScene(graphics, 1.0f);
-
 		matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
 		matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f));
 		int scale = 20;
@@ -65,6 +63,8 @@ public class AnimatedSquidSpout extends AnimatedKinetics {
 		matrixStack.translate(0, -3 * squeeze / 32f, 0);
 
 		matrixStack.popPose();
+
+		SquidJeiRenderer.renderInCurrentScene(graphics, scale);
 
 		blockElement(AllBlocks.DEPOT.getDefaultState())
 			.atLocal(0, 2, 0)
