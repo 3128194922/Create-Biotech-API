@@ -22,7 +22,7 @@ import net.minecraftforge.common.util.LazyOptional;
 import net.minecraftforge.items.IItemHandler;
 
 public class ExperienceCrystallizerBlockEntity extends BlockEntity implements ExperienceSink, IHaveGoggleInformation {
-	private static final int MAX_STACK = 64;
+	public static final int MAX_STACK = 64;
 
 	private ItemStack output = ItemStack.EMPTY;
 	private int bufferedXp;
@@ -109,8 +109,12 @@ public class ExperienceCrystallizerBlockEntity extends BlockEntity implements Ex
 		return extracted;
 	}
 
-	private int getOutputCount() {
+	public int getOutputCount() {
 		return output.isEmpty() ? 0 : output.getCount();
+	}
+
+	public int getBufferedXp() {
+		return bufferedXp;
 	}
 
 	private void addNugget() {

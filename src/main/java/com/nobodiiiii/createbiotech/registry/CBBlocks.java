@@ -9,6 +9,9 @@ import com.nobodiiiii.createbiotech.content.boneratchet.BoneRatchetBlock;
 import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerBlock;
 import com.nobodiiiii.createbiotech.content.bufferpad.BufferPadBlock;
 import com.nobodiiiii.createbiotech.content.evokerenchantingchamber.EvokerEnchantingChamberBlock;
+import com.nobodiiiii.createbiotech.content.experience.BuddingExperienceBlock;
+import com.nobodiiiii.createbiotech.content.experience.ExperienceClusterBlock;
+import com.nobodiiiii.createbiotech.content.experience.ExperienceConstants;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceCrystallizerBlock;
 import com.nobodiiiii.createbiotech.content.experience.ExperiencePumpBlock;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceTankBlock;
@@ -89,6 +92,30 @@ public class CBBlocks {
 				.strength(2.0f)
 				.mapColor(MapColor.WOOD)
 				.noOcclusion()));
+
+	public static final RegistryObject<BuddingExperienceBlock> BUDDING_EXPERIENCE =
+		BLOCKS.register("budding_experience",
+			() -> new BuddingExperienceBlock(Block.Properties.of()
+				.sound(SoundType.AMETHYST)
+				.strength(1.5f)
+				.mapColor(MapColor.COLOR_PURPLE)
+				.randomTicks()));
+
+	public static final RegistryObject<ExperienceClusterBlock> SMALL_EXPERIENCE_BUD =
+		BLOCKS.register("small_experience_bud",
+			() -> new ExperienceClusterBlock(3, 4, ExperienceConstants.SMALL_BUD_NUGGET_VALUE, clusterProperties()));
+
+	public static final RegistryObject<ExperienceClusterBlock> MEDIUM_EXPERIENCE_BUD =
+		BLOCKS.register("medium_experience_bud",
+			() -> new ExperienceClusterBlock(4, 3, ExperienceConstants.MEDIUM_BUD_NUGGET_VALUE, clusterProperties()));
+
+	public static final RegistryObject<ExperienceClusterBlock> LARGE_EXPERIENCE_BUD =
+		BLOCKS.register("large_experience_bud",
+			() -> new ExperienceClusterBlock(5, 3, ExperienceConstants.LARGE_BUD_NUGGET_VALUE, clusterProperties()));
+
+	public static final RegistryObject<ExperienceClusterBlock> EXPERIENCE_CLUSTER =
+		BLOCKS.register("experience_cluster",
+			() -> new ExperienceClusterBlock(7, 3, ExperienceConstants.CLUSTER_NUGGET_VALUE, clusterProperties()));
 
 	public static final RegistryObject<ExperienceTankBlock> EXPERIENCE_TANK = BLOCKS.register("experience_tank",
 		() -> new ExperienceTankBlock(Block.Properties.of()
@@ -226,6 +253,15 @@ public class CBBlocks {
 	private static Block.Properties blastProofGlassProperties() {
 		return Block.Properties.copy(Blocks.GLASS)
 			.strength(50.0f, 1200.0f);
+	}
+
+	private static Block.Properties clusterProperties() {
+		return Block.Properties.of()
+			.sound(SoundType.AMETHYST_CLUSTER)
+			.strength(1.5f)
+			.mapColor(MapColor.COLOR_PURPLE)
+			.noOcclusion()
+			.lightLevel(state -> 5);
 	}
 
 	private static Map<DyeColor, RegistryObject<BufferPadBlock>> registerBufferPads() {

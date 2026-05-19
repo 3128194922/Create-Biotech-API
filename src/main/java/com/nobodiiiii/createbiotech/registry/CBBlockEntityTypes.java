@@ -4,6 +4,7 @@ import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.content.boneratchet.BoneRatchetBlockEntity;
 import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerBlockEntity;
 import com.nobodiiiii.createbiotech.content.evokerenchantingchamber.EvokerEnchantingChamberBlockEntity;
+import com.nobodiiiii.createbiotech.content.experience.BuddingExperienceBlockEntity;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceCrystallizerBlockEntity;
 import com.nobodiiiii.createbiotech.content.experience.ExperiencePumpBlockEntity;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceTankBlockEntity;
@@ -82,6 +83,12 @@ public class CBBlockEntityTypes {
 		BLOCK_ENTITY_TYPES.register("experience_crystallizer",
 			() -> BlockEntityType.Builder
 				.of(ExperienceCrystallizerBlockEntity::new, CBBlocks.EXPERIENCE_CRYSTALLIZER.get())
+				.build(null));
+
+	public static final RegistryObject<BlockEntityType<BuddingExperienceBlockEntity>> BUDDING_EXPERIENCE =
+		BLOCK_ENTITY_TYPES.register("budding_experience",
+			() -> BlockEntityType.Builder
+				.of(BuddingExperienceBlockEntity::new, CBBlocks.BUDDING_EXPERIENCE.get())
 				.build(null));
 
 	public static final RegistryObject<BlockEntityType<ExperienceTankBlockEntity>> EXPERIENCE_TANK =

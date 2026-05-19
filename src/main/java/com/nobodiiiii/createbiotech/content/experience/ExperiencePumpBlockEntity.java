@@ -27,9 +27,11 @@ import net.minecraftforge.common.capabilities.ForgeCapabilities;
 import net.minecraftforge.items.IItemHandler;
 
 public class ExperiencePumpBlockEntity extends KineticBlockEntity {
-	private static final double DEFAULT_ATTRACTION_RADIUS = 1.5d;
-	private static final double CORE_RADIUS = 0.75d;
-	private static final double FIELD_DEPTH = 1.5d;
+	private static final double ATTRACT_HALF_EXTENT = 1.5d; // 3x3 attraction
+	private static final double ABSORB_HALF_EXTENT = 0.75d; // 1.5x1.5 absorb
+	private static final double NO_NOZZLE_CENTER_OFFSET = 1.05d;
+	private static final double NOZZLE_CENTER_OFFSET = 1.65d;
+	private static final double MAX_ATTRACT_PULL = 0.32d;
 
 	private double fractionalXp;
 
@@ -112,12 +114,12 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 	}
 
 	private int suctionOpenWorld(Direction inputSide, int budget, boolean nozzle) {
-		Vec3 center = Vec3.atCenterOf(worldPosition).add(Vec3.atLowerCornerOf(inputSide.getNormal())
-			.scale(nozzle ? 1.65d : 1.05d));
+		double offset = nozzle ? NOZZLE_CENTER_OFFSET : NO_NOZZLE_CENTER_OFFSET;
+		Vec3 center = Vec3.atCenterOf(worldPosition)
+			.add(Vec3.atLowerCornerOf(inputSide.getNormal()).scale(offset));
 		double normalizedSpeed = Math.min(Math.abs(getSpeed()) / ExperienceConstants.SPEED_NORMALIZATION_RPM, 1.0d);
-		double attractionRadius = DEFAULT_ATTRACTION_RADIUS + (nozzle ? 4.0d * normalizedSpeed : 0.0d);
-		AABB attractionBox = boxAround(center, attractionRadius, FIELD_DEPTH + (nozzle ? 3.0d * normalizedSpeed : 0));
-		AABB coreBox = boxAround(center, CORE_RADIUS, CORE_RADIUS);
+		AABB attractionBox = cubeAround(center, ATTRACT_HALF_EXTENT);
+		AABB absorbBox = cubeAround(center, ABSORB_HALF_EXTENT);
 		int remaining = budget;
 		int absorbed = 0;
 
@@ -125,7 +127,7 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 		for (ExperienceOrb orb : orbs) {
 			if (remaining <= 0)
 				break;
-			if (!coreBox.contains(orb.position())) {
+			if (!absorbBox.contains(orb.position())) {
 				attractOrb(orb, center, normalizedSpeed);
 				continue;
 			}
@@ -141,7 +143,7 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 		}
 
 		if (remaining > 0) {
-			List<Player> players = level.getEntitiesOfClass(Player.class, coreBox,
+			List<Player> players = level.getEntitiesOfClass(Player.class, absorbBox,
 				player -> player.isAlive() && !player.isSpectator());
 			for (Player player : players) {
 				if (remaining <= 0)
@@ -157,12 +159,18 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 
 	private void attractOrb(ExperienceOrb orb, Vec3 center, double normalizedSpeed) {
 		Vec3 delta = center.subtract(orb.position());
-		if (delta.lengthSqr() < 1.0E-4d)
+		double distSqr = delta.lengthSqr();
+		if (distSqr < 1.0E-4d)
 			return;
-		Vec3 pull = delta.normalize()
-			.scale(0.035d + normalizedSpeed * 0.06d);
-		orb.setDeltaMovement(orb.getDeltaMovement()
-			.add(pull));
+		double pullStrength = MAX_ATTRACT_PULL * (0.4d + 0.6d * normalizedSpeed);
+		Vec3 pull = delta.normalize().scale(pullStrength);
+		// Replace velocity with pull instead of adding to it, so the orb's motion is dominated by the suction
+		Vec3 current = orb.getDeltaMovement();
+		Vec3 blended = new Vec3(
+			current.x * 0.4d + pull.x,
+			current.y * 0.4d + pull.y,
+			current.z * 0.4d + pull.z);
+		orb.setDeltaMovement(blended);
 	}
 
 	private OutputTarget resolveOutput(Direction outputSide, int budget) {
@@ -205,8 +213,9 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 
 	private boolean isNozzleFacing(BlockPos pos, Direction side) {
 		BlockState state = level.getBlockState(pos);
+		// Our nozzle FACING is flipped from vanilla: it points toward the pump (== side.getOpposite()).
 		return AllBlocks.NOZZLE.has(state) && state.hasProperty(BlockStateProperties.FACING)
-			&& state.getValue(BlockStateProperties.FACING) == side;
+			&& state.getValue(BlockStateProperties.FACING) == side.getOpposite();
 	}
 
 	private Direction getOutputSide() {
@@ -249,10 +258,9 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 		};
 	}
 
-	private static AABB boxAround(Vec3 center, double radius, double depth) {
-		double halfDepth = Math.max(radius, depth);
-		return new AABB(center.x - radius, center.y - radius, center.z - radius, center.x + radius, center.y + radius,
-			center.z + radius).inflate(halfDepth - radius);
+	private static AABB cubeAround(Vec3 center, double halfExtent) {
+		return new AABB(center.x - halfExtent, center.y - halfExtent, center.z - halfExtent, center.x + halfExtent,
+			center.y + halfExtent, center.z + halfExtent);
 	}
 
 	@Override

@@ -136,7 +136,7 @@ public class ExperienceTankBlockEntity extends BlockEntity
 		width = 1;
 		height = 1;
 		BlockState state = getBlockState();
-		if (state.getBlock() instanceof ExperienceTankBlock)
+		if (ExperienceTankBlock.isTank(state))
 			level.setBlock(worldPosition, state.setValue(ExperienceTankBlock.TOP, true)
 				.setValue(ExperienceTankBlock.BOTTOM, true)
 				.setValue(ExperienceTankBlock.SHAPE, window ? Shape.WINDOW : Shape.PLAIN), 22);
@@ -335,6 +335,12 @@ public class ExperienceTankBlockEntity extends BlockEntity
 	}
 
 	public void handleRemoved() {
+		spillStoredXpOnRemove();
+		if (level != null && !level.isClientSide)
+			ConnectivityHandler.splitMulti(this);
+	}
+
+	public void spillStoredXpOnRemove() {
 		if (level == null || level.isClientSide)
 			return;
 
@@ -348,8 +354,6 @@ public class ExperienceTankBlockEntity extends BlockEntity
 				storedExperience = 0;
 			}
 		}
-
-		ConnectivityHandler.splitMulti(this);
 	}
 
 	@Nullable

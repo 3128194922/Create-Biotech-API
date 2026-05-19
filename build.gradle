@@ -86,6 +86,7 @@ dependencies {
     modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     modCompileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
     modRuntimeOnly("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
+    modCompileOnly("maven.modrinth:jade:${jade_version}")
     modImplementation("io.github.llamalad7:mixinextras-forge:${mixinextras_version}")
     compileOnly("io.github.llamalad7:mixinextras-common:${mixinextras_version}")
 
