@@ -1,9 +1,10 @@
 package com.nobodiiiii.createbiotech.content.biopackager;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.AllPartialModels;
+import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.simibubi.create.foundation.blockEntity.renderer.SmartBlockEntityRenderer;
 
+import dev.engine_room.flywheel.api.visualization.VisualizationManager;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
 import dev.engine_room.flywheel.lib.transform.TransformStack;
 import net.createmod.catnip.math.AngleHelper;
@@ -21,6 +22,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 
 public class BioPackagerRenderer extends SmartBlockEntityRenderer<BioPackagerBlockEntity> {
+
+	private static final PartialModel HATCH_OPEN = PartialModel.of(CreateBiotech.asResource("block/bio_packager/hatch_open"));
+	private static final PartialModel HATCH_CLOSED = PartialModel.of(CreateBiotech.asResource("block/bio_packager/hatch_closed"));
+	private static final PartialModel TRAY = PartialModel.of(CreateBiotech.asResource("block/bio_packager/tray"));
 
 	public BioPackagerRenderer(Context context) {
 		super(context);
@@ -45,8 +50,11 @@ public class BioPackagerRenderer extends SmartBlockEntityRenderer<BioPackagerBlo
 	}
 
 	public static PartialModel getHatchModel(boolean animationInward, int animationTicks) {
-		return isHatchOpen(animationInward, animationTicks) ? AllPartialModels.PACKAGER_HATCH_OPEN
-			: AllPartialModels.PACKAGER_HATCH_CLOSED;
+		return isHatchOpen(animationInward, animationTicks) ? HATCH_OPEN : HATCH_CLOSED;
+	}
+
+	public static PartialModel getTrayModel(BlockState blockState) {
+		return TRAY;
 	}
 
 	public static boolean isHatchOpen(boolean animationInward, int animationTicks) {
@@ -58,18 +66,20 @@ public class BioPackagerRenderer extends SmartBlockEntityRenderer<BioPackagerBlo
 		PartialModel hatchModel, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
 		Direction facing = blockState.getValue(BioPackagerBlock.FACING).getOpposite();
 
-		SuperByteBuffer sbb = CachedBuffers.partial(hatchModel, blockState);
-		sbb.translate(Vec3.atLowerCornerOf(facing.getNormal()).scale(.49999f))
-			.rotateYCenteredDegrees(AngleHelper.horizontalAngle(facing))
-			.rotateXCenteredDegrees(AngleHelper.verticalAngle(facing))
-			.light(light)
-			.renderInto(ms, buffer.getBuffer(RenderType.solid()));
+		if (!VisualizationManager.supportsVisualization(level)) {
+			SuperByteBuffer sbb = CachedBuffers.partial(hatchModel, blockState);
+			sbb.translate(Vec3.atLowerCornerOf(facing.getNormal()).scale(.49999f))
+				.rotateYCenteredDegrees(AngleHelper.horizontalAngle(facing))
+				.rotateXCenteredDegrees(AngleHelper.verticalAngle(facing))
+				.light(light)
+				.renderInto(ms, buffer.getBuffer(RenderType.solid()));
 
-		sbb = CachedBuffers.partial(AllPartialModels.PACKAGER_TRAY_REGULAR, blockState);
-		sbb.translate(Vec3.atLowerCornerOf(facing.getNormal()).scale(trayOffset))
-			.rotateYCenteredDegrees(facing.toYRot())
-			.light(light)
-			.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));
+			sbb = CachedBuffers.partial(getTrayModel(blockState), blockState);
+			sbb.translate(Vec3.atLowerCornerOf(facing.getNormal()).scale(trayOffset))
+				.rotateYCenteredDegrees(facing.toYRot())
+				.light(light)
+				.renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));
+		}
 
 		if (renderedBox.isEmpty())
 			return;

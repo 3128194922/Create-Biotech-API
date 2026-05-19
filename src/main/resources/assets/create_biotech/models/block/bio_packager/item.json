@@ -1,0 +1,9 @@
+{
+  "parent": "create:block/repackager/item",
+  "textures": {
+    "0": "create_biotech:block/bio_packager_frame",
+    "1": "create_biotech:block/bio_packager_details",
+    "2": "create_biotech:block/bio_packager_horizontal_unpowered",
+    "particle": "create_biotech:block/bio_packager_particle"
+  }
+}

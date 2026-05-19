@@ -4,6 +4,7 @@ import com.nobodiiiii.createbiotech.content.evokerenchantingchamber.EvokerEnchan
 import com.nobodiiiii.createbiotech.content.experience.ExperiencePumpRenderer;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceTankRenderer;
 import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerRenderer;
+import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerVisual;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.BlastProofChainDriveRenderer;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberBlock;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberRenderer;
@@ -47,6 +48,7 @@ import com.simibubi.create.content.fluids.tank.FluidTankModel;
 import com.simibubi.create.foundation.block.connected.CTModel;
 import com.simibubi.create.foundation.block.connected.SimpleCTBehaviour;
 
+import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import dev.engine_room.flywheel.lib.visualization.SimpleEntityVisualizer;
 
 import net.createmod.ponder.foundation.PonderIndex;
@@ -116,6 +118,9 @@ public class CreateBiotechClient {
 		event.register(CreateBiotech.asResource("block/ghast_helm/block_open"));
 		event.register(CreateBiotech.asResource("block/ghast_helm/train/cover"));
 		event.register(CreateBiotech.asResource("block/ghast_helm/train/lever"));
+		event.register(CreateBiotech.asResource("block/bio_packager/hatch_open"));
+		event.register(CreateBiotech.asResource("block/bio_packager/hatch_closed"));
+		event.register(CreateBiotech.asResource("block/bio_packager/tray"));
 	}
 
 	@SubscribeEvent
@@ -140,6 +145,10 @@ public class CreateBiotechClient {
 			PonderIndex.addPlugin(new CreateBiotechPonderPlugin());
 			SimpleEntityVisualizer.<GhastHotAirBalloonEntity>builder(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get())
 				.factory(ContraptionVisual::new)
+				.apply();
+			SimpleBlockEntityVisualizer.builder(CBBlockEntityTypes.BIO_PACKAGER.get())
+				.factory(BioPackagerVisual::new)
+				.neverSkipVanillaRender()
 				.apply();
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.BIO_PACKAGER.get(), RenderType.cutoutMipped());
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.EXPERIENCE_PUMP.get(), RenderType.cutoutMipped());
