@@ -2,10 +2,12 @@ package com.nobodiiiii.createbiotech.compat.jei;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.nobodiiiii.createbiotech.foundation.render.ItemEntityElement;
+
 import mezz.jei.api.gui.drawable.IDrawable;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.monster.Slime;
 import net.minecraft.world.level.Level;
@@ -63,8 +65,14 @@ public class SlimeEntityDrawable implements IDrawable {
 		if (slime == null)
 			return;
 
-		InventoryScreen.renderEntityInInventoryFollowsAngle(guiGraphics, xOffset + width / 2,
-			yOffset + height + renderYOffset, scale, angleX, angleY, slime);
+		ItemEntityElement.of(slime)
+			.lighting(ItemEntityElement.DEFAULT_GUI_LIGHTING)
+			.packedLight(LightTexture.FULL_BRIGHT)
+			.partialTicks(1.0f)
+			.atLocal(xOffset + width / 2d, yOffset + height + renderYOffset, 50.0d)
+			.scale(scale, scale, -scale)
+			.inventoryLike(angleX, angleY)
+			.render(guiGraphics.pose(), guiGraphics.bufferSource());
 	}
 
 	@Nullable

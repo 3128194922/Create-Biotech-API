@@ -9,15 +9,28 @@ import com.mojang.math.Axis;
 
 import net.createmod.catnip.gui.ILightingSettings;
 import net.createmod.catnip.math.VecHelper;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.Vec3;
 
 public final class ItemEntityElement {
 	public static final ILightingSettings DEFAULT_GUI_LIGHTING = Lighting::setupForEntityInInventory;
+	private static final float DEFAULT_INVENTORY_ANGLE_X = 0.75f;
+	private static final float DEFAULT_INVENTORY_ANGLE_Y = 0.6f;
+	private static final double DEFAULT_GUI_X = 0.5d;
+	private static final double DEFAULT_GUI_Y = 0.2d;
+	private static final double DEFAULT_GUI_Z = 0.5d;
+	private static final double DEFAULT_WORLD_X = 0.5d;
+	private static final double DEFAULT_WORLD_Y = 0.45d;
+	private static final double DEFAULT_WORLD_Z = 0.5d;
+	private static final double DEFAULT_GUI_SCALE = 0.7d;
+	private static final double DEFAULT_GROUND_SCALE = 0.75d;
+	private static final double DEFAULT_OTHER_SCALE = 0.55d;
 
 	private ItemEntityElement() {
 	}
@@ -162,6 +175,28 @@ public final class ItemEntityElement {
 				.pitch(-angleYComponent * 20.0F)
 				.headYaw(yaw)
 				.dispatcherYaw(0.0F);
+		}
+
+		public ItemEntityRenderBuilder<T> inventoryLikeDefault() {
+			return inventoryLike(DEFAULT_INVENTORY_ANGLE_X, DEFAULT_INVENTORY_ANGLE_Y);
+		}
+
+		public ItemEntityRenderBuilder<T> asItem(ItemDisplayContext displayContext, int packedLight) {
+			partialTicks(1.0f);
+			inventoryLikeDefault();
+
+			if (displayContext == ItemDisplayContext.GUI) {
+				return lighting(DEFAULT_GUI_LIGHTING)
+					.packedLight(LightTexture.FULL_BRIGHT)
+					.atLocal(DEFAULT_GUI_X, DEFAULT_GUI_Y, DEFAULT_GUI_Z)
+					.scale(DEFAULT_GUI_SCALE, DEFAULT_GUI_SCALE, -DEFAULT_GUI_SCALE);
+			}
+
+			double scale = displayContext == ItemDisplayContext.GROUND ? DEFAULT_GROUND_SCALE : DEFAULT_OTHER_SCALE;
+			return lighting(null)
+				.packedLight(packedLight)
+				.atLocal(DEFAULT_WORLD_X, DEFAULT_WORLD_Y, DEFAULT_WORLD_Z)
+				.scale(scale, scale, -scale);
 		}
 
 		public void render(PoseStack poseStack, MultiBufferSource buffer) {

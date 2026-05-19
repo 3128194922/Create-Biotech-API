@@ -15,6 +15,7 @@ import net.minecraft.util.Mth;
 public final class SquidJeiRenderer {
 
 	private static final float GUI_SCALE = 20.0f;
+	private static final float SQUID_ENTITY_SCALE = 0.8f;
 	private static final float GUI_Y_OFFSET = -32.0f;
 	private static final float GUI_RENDER_Z = 100.0f;
 	private static final float RUN_CYCLE_SPEED = 0.045f;
@@ -39,6 +40,7 @@ public final class SquidJeiRenderer {
 			.at(centerX, centerY + GUI_Y_OFFSET, GUI_RENDER_Z)
 			.rotate(-15.5d, 22.5d, 0d)
 			.scale(GUI_SCALE * scale)
+			.scaleEntity(SQUID_ENTITY_SCALE)
 			.stateModifier(SquidJeiRenderer::animateTentacles)
 			.render(graphics);
 	}

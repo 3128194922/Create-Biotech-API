@@ -2,6 +2,7 @@ package com.nobodiiiii.createbiotech.compat.jei;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.nobodiiiii.createbiotech.foundation.render.ItemEntityElement;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
@@ -17,9 +18,7 @@ import net.minecraftforge.client.extensions.common.IClientItemExtensions;
 
 @OnlyIn(Dist.CLIENT)
 public class CapturedSmallSlimeJeiItemRenderer extends BlockEntityWithoutLevelRenderer {
-	private static final int GUI_LIGHT = 15728880;
-	private static final float ANGLE_X = 0.75f;
-	private static final float ANGLE_Y = 0.6f;
+	private static final int SLIME_SIZE = 2;
 
 	private static final IClientItemExtensions ITEM_EXTENSIONS = new IClientItemExtensions() {
 		private CapturedSmallSlimeJeiItemRenderer renderer;
@@ -32,8 +31,10 @@ public class CapturedSmallSlimeJeiItemRenderer extends BlockEntityWithoutLevelRe
 		}
 	};
 
-	private final SlimeEntityDrawable slimeDrawable =
-		new SlimeEntityDrawable(16, 16, 10, 2, ANGLE_X, ANGLE_Y, -1, EntityType.SLIME);
+	@Nullable
+	private Slime cachedSlime;
+	@Nullable
+	private Level cachedLevel;
 
 	private CapturedSmallSlimeJeiItemRenderer() {
 		super(Minecraft.getInstance().getBlockEntityRenderDispatcher(), Minecraft.getInstance().getEntityModels());
@@ -50,32 +51,28 @@ public class CapturedSmallSlimeJeiItemRenderer extends BlockEntityWithoutLevelRe
 		if (level == null)
 			return;
 
-		Slime slime = slimeDrawable.getOrCreateSlime(level);
+		Slime slime = getOrCreateSlime(level);
 		if (slime == null)
 			return;
 
-		poseStack.pushPose();
-		applyTransform(displayContext, poseStack);
-
-		boolean gui = displayContext == ItemDisplayContext.GUI;
 		ItemEntityElement.of(slime)
-			.lighting(gui ? ItemEntityElement.DEFAULT_GUI_LIGHTING : null)
-			.packedLight(gui ? GUI_LIGHT : packedLight)
-			.partialTicks(1.0f)
-			.inventoryLike(ANGLE_X, ANGLE_Y)
+			.asItem(displayContext, packedLight)
 			.render(poseStack, buffer);
-
-		poseStack.popPose();
 	}
 
-	private static void applyTransform(ItemDisplayContext displayContext, PoseStack poseStack) {
-		if (displayContext == ItemDisplayContext.GUI) {
-			poseStack.translate(0.5f, 0.2f, 0.5f);
-			poseStack.scale(0.7f, 0.7f, -0.7f);
-			return;
-		}
-		poseStack.translate(0.5f, 0.45f, 0.5f);
-		float scale = displayContext == ItemDisplayContext.GROUND ? 0.75f : 0.55f;
-		poseStack.scale(scale, scale, -scale);
+	@Nullable
+	private Slime getOrCreateSlime(Level level) {
+		if (cachedSlime != null && cachedLevel == level)
+			return cachedSlime;
+
+		Slime slime = EntityType.SLIME.create(level);
+		if (slime == null)
+			return null;
+		slime.setNoAi(true);
+		slime.setSize(SLIME_SIZE, false);
+		slime.tickCount = 0;
+		cachedLevel = level;
+		cachedSlime = slime;
+		return slime;
 	}
 }

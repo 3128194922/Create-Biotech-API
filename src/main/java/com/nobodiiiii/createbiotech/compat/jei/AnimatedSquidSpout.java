@@ -24,9 +24,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fluids.FluidStack;
 
 public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
-	private static final double SQUID_BASE_ATTACHMENT_Y = 1.05d;
-	private static final double SQUID_ATTACHMENT_Y_OFFSET = 1.05d;
-	private static final double SQUID_ATTACHMENT_Y = SQUID_BASE_ATTACHMENT_Y + SQUID_ATTACHMENT_Y_OFFSET;
+	private static final double SQUID_ATTACHMENT_Y = -0.2d;
+	private static final double SQUID_SCALE = 0.8d;
+	private static final int SCENE_SCALE = 20;
 
 	private List<FluidStack> fluids;
 
@@ -43,7 +43,7 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 
 		matrixStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
 		matrixStack.mulPose(Axis.YP.rotationDegrees(22.5f));
-		int scale = 20;
+		int scale = SCENE_SCALE;
 
 		blockElement(AllBlocks.SPOUT.getDefaultState())
 			.scale(scale)
@@ -73,8 +73,9 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 		Squid squid = SquidJeiRenderer.getOrCreateSquid();
 		if (squid != null) {
 			entityElement(squid)
-				.atLocal(0.5d, 0, 0.5d)
+				.atLocal(0.5d, SQUID_ATTACHMENT_Y, 0.5d)
 				.scale(scale)
+				.scaleEntity(SQUID_SCALE)
 				.stateModifier(SquidJeiRenderer::animateTentacles)
 				.render(graphics);
 		}

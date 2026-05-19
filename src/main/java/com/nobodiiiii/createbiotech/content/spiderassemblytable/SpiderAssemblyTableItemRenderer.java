@@ -1,9 +1,9 @@
 package com.nobodiiiii.createbiotech.content.spiderassemblytable;
 
-import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.nobodiiiii.createbiotech.CreateBiotech;
+import com.nobodiiiii.createbiotech.foundation.render.EntityModelElement;
 import com.nobodiiiii.createbiotech.registry.CBBlocks;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModel;
 import com.simibubi.create.foundation.item.render.CustomRenderedItemModelRenderer;
@@ -33,7 +33,6 @@ public class SpiderAssemblyTableItemRenderer extends CustomRenderedItemModelRend
 		CreateBiotech.asResource("textures/entity/spider_assembly_table/spider.png");
 	private static final ResourceLocation SPIDER_EYES_TEXTURE =
 		CreateBiotech.asResource("textures/entity/spider_assembly_table/spider_eyes.png");
-	private static final int GUI_LIGHT = 15728880;
 	private static final int EYES_LIGHT = 15728640;
 	private static final float HALF_BLOCK_OFFSET = 0.5f;
 	private static final float SPIDER_Y_OFFSET = 15f / 16f;
@@ -49,36 +48,25 @@ public class SpiderAssemblyTableItemRenderer extends CustomRenderedItemModelRend
 	@Override
 	protected void render(ItemStack stack, CustomRenderedItemModel model, PartialItemModelRenderer renderer,
 		ItemDisplayContext transformType, PoseStack ms, MultiBufferSource buffer, int light, int overlay) {
-		boolean gui = transformType == ItemDisplayContext.GUI;
-		int packedLight = gui ? GUI_LIGHT : light;
 		BakedModel cogModel = Minecraft.getInstance()
 			.getBlockRenderer()
 			.getBlockModel(COG_STATE);
-		SpiderModel<RenderSpider> spiderModel = getSpiderModel();
 		RenderSpider spider = getOrCreateSpider(Minecraft.getInstance().level);
-
-		if (gui)
-			Lighting.setupForEntityInInventory();
 
 		ms.pushPose();
 		ms.translate(0, 0, HALF_BLOCK_OFFSET);
-		renderer.renderSolid(cogModel, packedLight);
+		renderer.renderSolid(cogModel, light);
 		ms.popPose();
 
-		if (spider != null && spiderModel != null) {
-			prepareSpiderModel(spider);
-			ms.pushPose();
-			ms.translate(0, SPIDER_Y_OFFSET, -HALF_BLOCK_OFFSET);
-			ms.scale(-SPIDER_SCALE, -SPIDER_SCALE, SPIDER_SCALE);
-			VertexConsumer spiderBuffer = buffer.getBuffer(spiderModel.renderType(SPIDER_TEXTURE));
-			spiderModel.renderToBuffer(ms, spiderBuffer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
-			VertexConsumer spiderEyesBuffer = buffer.getBuffer(net.minecraft.client.renderer.RenderType.eyes(SPIDER_EYES_TEXTURE));
-			spiderModel.renderToBuffer(ms, spiderEyesBuffer, EYES_LIGHT, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
-			ms.popPose();
-		}
+		if (spider == null || getSpiderModel() == null)
+			return;
 
-		if (gui)
-			Lighting.setupFor3DItems();
+		EntityModelElement.of(spider)
+			.lighting(transformType == ItemDisplayContext.GUI ? EntityModelElement.DEFAULT_GUI_LIGHTING : null)
+			.packedLight(light)
+			.atLocal(0, SPIDER_Y_OFFSET, -HALF_BLOCK_OFFSET)
+			.scale(-SPIDER_SCALE, -SPIDER_SCALE, SPIDER_SCALE)
+			.render(ms, buffer, this::renderSpiderModel);
 	}
 
 	private void prepareSpiderModel(RenderSpider spider) {
@@ -87,6 +75,17 @@ public class SpiderAssemblyTableItemRenderer extends CustomRenderedItemModelRend
 		ModelPart root = spiderModel.root();
 		root.getAllParts().forEach(ModelPart::resetPose);
 		spiderModel.setupAnim(spider, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+	}
+
+	private void renderSpiderModel(RenderSpider spider, PoseStack ms, MultiBufferSource buffer, int packedLight) {
+		SpiderModel<RenderSpider> spiderModel = getSpiderModel();
+		if (spiderModel == null)
+			return;
+		prepareSpiderModel(spider);
+		VertexConsumer spiderBuffer = buffer.getBuffer(spiderModel.renderType(SPIDER_TEXTURE));
+		spiderModel.renderToBuffer(ms, spiderBuffer, packedLight, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
+		VertexConsumer spiderEyesBuffer = buffer.getBuffer(net.minecraft.client.renderer.RenderType.eyes(SPIDER_EYES_TEXTURE));
+		spiderModel.renderToBuffer(ms, spiderEyesBuffer, EYES_LIGHT, OverlayTexture.NO_OVERLAY, 1, 1, 1, 1);
 	}
 
 	private @Nullable SpiderModel<RenderSpider> getSpiderModel() {
