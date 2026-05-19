@@ -254,6 +254,14 @@ public class BuddingExperienceBlockEntity extends BlockEntity implements Experie
 		return faceXp[direction.get3DDataValue()];
 	}
 
+	public void resetFaceState(Direction face) {
+		int idx = face.get3DDataValue();
+		if (faceXp[idx] == 0)
+			return;
+		faceXp[idx] = 0;
+		syncToClient();
+	}
+
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);

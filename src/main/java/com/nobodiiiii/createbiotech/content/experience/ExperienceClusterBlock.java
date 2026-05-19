@@ -8,8 +8,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -75,27 +77,26 @@ public class ExperienceClusterBlock extends Block implements ProperWaterloggedBl
 	public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level,
 		BlockPos pos, BlockPos neighborPos) {
 		updateWater(level, state, pos);
-		Direction facing = state.getValue(FACING);
-		if (direction == facing.getOpposite() && !state.canSurvive(level, pos))
-			return waterState(state);
 		return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
 	}
 
 	@Override
-	public boolean canSurvive(BlockState state, net.minecraft.world.level.LevelReader level, BlockPos pos) {
-		Direction facing = state.getValue(FACING);
-		BlockPos attachedPos = pos.relative(facing.getOpposite());
-		return level.getBlockState(attachedPos).isFaceSturdy(level, attachedPos, facing)
-			|| level.getBlockState(attachedPos).getBlock() instanceof BuddingExperienceBlock;
+	public void onRemove(BlockState oldState, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
+		if (!oldState.is(newState.getBlock()) && !(newState.getBlock() instanceof ExperienceClusterBlock)) {
+			Direction facing = oldState.getValue(FACING);
+			BlockPos buddingPos = pos.relative(facing.getOpposite());
+			BlockState buddingState = level.getBlockState(buddingPos);
+			if (buddingState.getBlock() instanceof BuddingExperienceBlock) {
+				BlockEntity be = level.getBlockEntity(buddingPos);
+				if (be instanceof BuddingExperienceBlockEntity budding)
+					budding.resetFaceState(facing);
+			}
+		}
+		super.onRemove(oldState, level, pos, newState, isMoving);
 	}
 
 	@Override
 	public FluidState getFluidState(BlockState state) {
 		return fluidState(state);
-	}
-
-	private static BlockState waterState(BlockState state) {
-		return state.getValue(WATERLOGGED) ? net.minecraft.world.level.material.Fluids.WATER.defaultFluidState()
-			.createLegacyBlock() : net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
 	}
 }
