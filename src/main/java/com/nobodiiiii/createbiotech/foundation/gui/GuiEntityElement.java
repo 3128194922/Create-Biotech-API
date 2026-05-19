@@ -9,21 +9,17 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
+import com.nobodiiiii.createbiotech.foundation.render.EntityRenderHelper;
 
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.gui.ILightingSettings;
 import net.createmod.catnip.gui.UIRenderHelper;
 import net.createmod.catnip.gui.element.AbstractRenderElement;
 import net.createmod.catnip.math.VecHelper;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 public final class GuiEntityElement {
@@ -37,10 +33,20 @@ public final class GuiEntityElement {
 		return new GuiEntityRenderBuilder<>(entity);
 	}
 
-	public static class GuiEntityRenderBuilder<T extends Entity> extends AbstractRenderElement {
-		private static final Direction DEFAULT_FACING = Direction.SOUTH;
+	@FunctionalInterface
+	public interface EntityStateModifier<T extends Entity> {
+		@Nullable
+		StateRestorer apply(T entity, float partialTicks);
+	}
 
+	@FunctionalInterface
+	public interface StateRestorer {
+		void restore();
+	}
+
+	public static class GuiEntityRenderBuilder<T extends Entity> extends AbstractRenderElement {
 		private final T entity;
+		private final EntityRenderHelper.RenderSettings<T> renderSettings;
 
 		private double xLocal;
 		private double yLocal;
@@ -55,24 +61,13 @@ public final class GuiEntityElement {
 		private Vec3 rotationOffset = Vec3.ZERO;
 		@Nullable
 		private ILightingSettings customLighting = DEFAULT_LIGHTING;
-		private int packedLight = LightTexture.FULL_BRIGHT;
-		private boolean renderShadow;
 		private float partialTicks = AnimationTickHolder.getPartialTicks();
 		@Nullable
-		private Integer tickCountOverride;
-		private float dispatcherYaw;
-		@Nullable
-		private Float renderYaw;
-		@Nullable
-		private Float bodyYaw;
-		@Nullable
-		private Float headYaw;
-		@Nullable
-		private Float pitch;
+		private EntityStateModifier<T> stateModifier;
 
 		private GuiEntityRenderBuilder(T entity) {
 			this.entity = entity;
-			face(DEFAULT_FACING);
+			this.renderSettings = EntityRenderHelper.settings(entity);
 		}
 
 		@Override
@@ -145,53 +140,59 @@ public final class GuiEntityElement {
 		}
 
 		public GuiEntityRenderBuilder<T> packedLight(int packedLight) {
-			this.packedLight = packedLight;
+			renderSettings.packedLight(packedLight);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> renderShadow(boolean renderShadow) {
-			this.renderShadow = renderShadow;
+			renderSettings.renderShadow(renderShadow);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> partialTicks(float partialTicks) {
 			this.partialTicks = partialTicks;
+			renderSettings.partialTicks(partialTicks);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> ticks(int tickCount) {
-			this.tickCountOverride = tickCount;
+			renderSettings.ticks(tickCount);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> dispatcherYaw(float dispatcherYaw) {
-			this.dispatcherYaw = dispatcherYaw;
+			renderSettings.dispatcherYaw(dispatcherYaw);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> yaw(float yaw) {
-			this.renderYaw = yaw;
+			renderSettings.yaw(yaw);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> bodyYaw(float bodyYaw) {
-			this.bodyYaw = bodyYaw;
+			renderSettings.bodyYaw(bodyYaw);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> headYaw(float headYaw) {
-			this.headYaw = headYaw;
+			renderSettings.headYaw(headYaw);
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> pitch(float pitch) {
-			this.pitch = pitch;
+			renderSettings.pitch(pitch);
+			return this;
+		}
+
+		public GuiEntityRenderBuilder<T> stateModifier(EntityStateModifier<T> stateModifier) {
+			this.stateModifier = stateModifier;
 			return this;
 		}
 
 		public GuiEntityRenderBuilder<T> face(Direction direction) {
-			float yaw = direction.toYRot();
-			return yaw(yaw).bodyYaw(yaw).headYaw(yaw);
+			renderSettings.face(direction);
+			return this;
 		}
 
 		@Override
@@ -209,35 +210,25 @@ public final class GuiEntityElement {
 			poseStack.mulPose(Axis.XP.rotationDegrees((float) xRot));
 			poseStack.mulPose(Axis.YP.rotationDegrees((float) yRot));
 			poseStack.translate(-rotationOffset.x, -rotationOffset.y, -rotationOffset.z);
+
 			Quaternionf sceneCameraOrientation = new Quaternionf()
 				.rotateZ((float) Math.toRadians(-zRot))
 				.rotateX((float) Math.toRadians(-xRot))
 				.rotateY((float) Math.toRadians(yRot));
-			renderEntity(graphics, poseStack, sceneCameraOrientation);
-			cleanUpMatrix(poseStack);
-		}
 
-		private void renderEntity(GuiGraphics graphics, PoseStack poseStack, Quaternionf sceneCameraOrientation) {
-			EntityRenderDispatcher dispatcher = Minecraft.getInstance()
-				.getEntityRenderDispatcher();
-			Quaternionf previousCamera = dispatcher.cameraOrientation() == null ? null
-				: new Quaternionf(dispatcher.cameraOrientation());
-			MultiBufferSource.BufferSource buffer = graphics.bufferSource();
-			EntityRenderState state = EntityRenderState.capture(entity);
-
+			StateRestorer customStateRestorer = null;
 			try {
-				applyEntityState();
-				dispatcher.overrideCameraOrientation(new Quaternionf(sceneCameraOrientation).conjugate());
-				dispatcher.setRenderShadow(renderShadow);
-				RenderSystem.runAsFancy(
-					() -> dispatcher.render(entity, 0, 0, 0, dispatcherYaw, partialTicks, poseStack, buffer, packedLight));
-				buffer.endBatch();
+				if (stateModifier != null)
+					customStateRestorer = stateModifier.apply(entity, partialTicks);
+				renderSettings.cameraOrientation(sceneCameraOrientation)
+					.flushBuffers(true);
+				EntityRenderHelper.render(renderSettings, poseStack, graphics.bufferSource());
 			} finally {
-				dispatcher.setRenderShadow(true);
-				if (previousCamera != null)
-					dispatcher.overrideCameraOrientation(previousCamera);
-				state.restore(entity);
+				if (customStateRestorer != null)
+					customStateRestorer.restore();
 			}
+
+			cleanUpMatrix(poseStack);
 		}
 
 		private void prepareMatrix(PoseStack poseStack) {
@@ -265,58 +256,6 @@ public final class GuiEntityElement {
 		private void cleanUpLighting() {
 			if (customLighting != null)
 				Lighting.setupFor3DItems();
-		}
-
-		private void applyEntityState() {
-			if (tickCountOverride != null)
-				entity.tickCount = tickCountOverride;
-
-			Float appliedYaw = renderYaw;
-			if (appliedYaw != null) {
-				entity.setYRot(appliedYaw);
-				entity.yRotO = appliedYaw;
-			}
-
-			if (pitch != null) {
-				entity.setXRot(pitch);
-				entity.xRotO = pitch;
-			}
-
-			if (entity instanceof LivingEntity livingEntity) {
-				float appliedBodyYaw = bodyYaw != null ? bodyYaw : appliedYaw != null ? appliedYaw : livingEntity.yBodyRot;
-				float appliedHeadYaw = headYaw != null ? headYaw : appliedYaw != null ? appliedYaw : livingEntity.yHeadRot;
-				livingEntity.setYBodyRot(appliedBodyYaw);
-				livingEntity.yBodyRotO = appliedBodyYaw;
-				livingEntity.yHeadRot = appliedHeadYaw;
-				livingEntity.yHeadRotO = appliedHeadYaw;
-			}
-		}
-	}
-
-	private record EntityRenderState(float yRot, float yRotO, float xRot, float xRotO, int tickCount,
-		float bodyYaw, float bodyYawO, float headYaw, float headYawO, boolean living) {
-
-		private static EntityRenderState capture(Entity entity) {
-			if (entity instanceof LivingEntity livingEntity)
-				return new EntityRenderState(entity.getYRot(), entity.yRotO, entity.getXRot(), entity.xRotO,
-					entity.tickCount, livingEntity.yBodyRot, livingEntity.yBodyRotO, livingEntity.yHeadRot,
-					livingEntity.yHeadRotO, true);
-			return new EntityRenderState(entity.getYRot(), entity.yRotO, entity.getXRot(), entity.xRotO,
-				entity.tickCount, 0, 0, 0, 0, false);
-		}
-
-		private void restore(Entity entity) {
-			entity.setYRot(yRot);
-			entity.yRotO = yRotO;
-			entity.setXRot(xRot);
-			entity.xRotO = xRotO;
-			entity.tickCount = tickCount;
-			if (living && entity instanceof LivingEntity livingEntity) {
-				livingEntity.setYBodyRot(bodyYaw);
-				livingEntity.yBodyRotO = bodyYawO;
-				livingEntity.yHeadRot = headYaw;
-				livingEntity.yHeadRotO = headYawO;
-			}
 		}
 	}
 }

@@ -8,7 +8,6 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.math.Axis;
 import com.simibubi.create.AllBlocks;
 import com.simibubi.create.AllPartialModels;
-import com.simibubi.create.compat.jei.category.animations.AnimatedKinetics;
 
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.gui.UIRenderHelper;
@@ -19,11 +18,15 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
 import net.minecraft.util.Mth;
+import net.minecraft.world.entity.animal.Squid;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraftforge.fluids.FluidStack;
 
-public class AnimatedSquidSpout extends AnimatedKinetics {
+public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
+	private static final double SQUID_BASE_ATTACHMENT_Y = 1.05d;
+	private static final double SQUID_ATTACHMENT_Y_OFFSET = 1.05d;
+	private static final double SQUID_ATTACHMENT_Y = SQUID_BASE_ATTACHMENT_Y + SQUID_ATTACHMENT_Y_OFFSET;
 
 	private List<FluidStack> fluids;
 
@@ -67,14 +70,21 @@ public class AnimatedSquidSpout extends AnimatedKinetics {
 
 		matrixStack.popPose();
 
-		SquidJeiRenderer.renderInCurrentScene(graphics, scale);
+		Squid squid = SquidJeiRenderer.getOrCreateSquid();
+		if (squid != null) {
+			entityElement(squid)
+				.atLocal(0.5d, 0, 0.5d)
+				.scale(scale)
+				.stateModifier(SquidJeiRenderer::animateTentacles)
+				.render(graphics);
+		}
 
 		blockElement(AllBlocks.DEPOT.getDefaultState())
 			.atLocal(0, 2, 0)
 			.scale(scale)
 			.render(graphics);
 
-		AnimatedKinetics.DEFAULT_LIGHTING.applyLighting();
+		DEFAULT_LIGHTING.applyLighting();
 		BufferSource buffer = MultiBufferSource.immediate(Tesselator.getInstance()
 			.getBuilder());
 		matrixStack.pushPose();

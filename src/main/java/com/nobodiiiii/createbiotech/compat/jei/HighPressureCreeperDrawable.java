@@ -106,7 +106,6 @@ public class HighPressureCreeperDrawable extends AnimatedKineticsWithEntities {
 		float appliedVerticalScale = Mth.lerp(compression, 1f, verticalScale);
 		entityElement(creeper)
 			.atLocal(0.5d, CREEPER_ATTACHMENT_Y, 0.5d)
-			.dispatcherYaw(0f)
 			.scale(PRESS_SCALE)
 			.scaleEntity(appliedHorizontalScale, appliedVerticalScale, appliedHorizontalScale)
 			.ticks(Mth.floor(AnimationTickHolder.getRenderTime()))
