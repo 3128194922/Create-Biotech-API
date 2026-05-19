@@ -17,6 +17,7 @@ import javax.annotation.Nullable;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.client.CreeperBlastChamberClientSoundHandler;
+import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerBlockEntity;
 import com.nobodiiiii.createbiotech.content.cardboardbox.CapturedEntityBoxHelper;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultBlock;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultBlockEntity;
@@ -32,8 +33,6 @@ import com.simibubi.create.content.kinetics.base.KineticBlockEntity;
 import com.simibubi.create.content.kinetics.chainDrive.ChainDriveBlock;
 import com.simibubi.create.content.kinetics.press.MechanicalPressBlockEntity;
 import com.simibubi.create.content.kinetics.press.PressingBehaviour;
-import com.simibubi.create.content.logistics.packager.PackagerBlock;
-import com.simibubi.create.content.logistics.packager.PackagerBlockEntity;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipe;
 import com.simibubi.create.foundation.blockEntity.SyncedBlockEntity;
 import com.simibubi.create.foundation.item.ItemHelper;
@@ -298,7 +297,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 						if (!state.isAir())
 							return null;
 					} else if (isCenter && y == 0) {
-						if (!AllBlocks.PACKAGER.has(state))
+						if (!state.is(CBBlocks.BIO_PACKAGER.get()))
 							return null;
 					} else {
 						boolean isController = state.getBlock() instanceof CreeperBlastChamberBlock;
@@ -722,10 +721,11 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			for (int z = 1; z < size - 1; z++) {
 				BlockPos packagerPos = origin.offset(x, 0, z);
 				BlockState packagerState = level.getBlockState(packagerPos);
-				if (!AllBlocks.PACKAGER.has(packagerState) || !packagerState.hasProperty(PackagerBlock.FACING)
-					|| packagerState.getValue(PackagerBlock.FACING) == Direction.UP)
+				if (!packagerState.is(CBBlocks.BIO_PACKAGER.get())
+					|| !packagerState.hasProperty(BlockStateProperties.FACING)
+					|| packagerState.getValue(BlockStateProperties.FACING) == Direction.UP)
 					continue;
-				level.setBlock(packagerPos, packagerState.setValue(PackagerBlock.FACING, Direction.UP), 3);
+				level.setBlock(packagerPos, packagerState.setValue(BlockStateProperties.FACING, Direction.UP), 3);
 			}
 		}
 	}
@@ -1304,7 +1304,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		Iterator<PendingUnpack> iterator = pendingUnpacks.iterator();
 		while (iterator.hasNext()) {
 			PendingUnpack pending = iterator.next();
-			PackagerBlockEntity packager = getPackager(pending.packagerPos);
+			BioPackagerBlockEntity packager = getPackager(pending.packagerPos);
 			if (!isPackagerPartOfStructure(pending.packagerPos) || packager == null) {
 				dropBox(pending);
 				iterator.remove();
@@ -1363,7 +1363,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		Iterator<PendingPackaging> iterator = pendingPackagings.iterator();
 		while (iterator.hasNext()) {
 			PendingPackaging pending = iterator.next();
-			PackagerBlockEntity packager = getPackager(pending.packagerPos);
+			BioPackagerBlockEntity packager = getPackager(pending.packagerPos);
 			if (packager == null) {
 				restorePendingPackaging(pending, true);
 				iterator.remove();
@@ -1755,24 +1755,24 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			&& !hasMarkedCreeperAtPackager(packagerPos);
 	}
 
-	private boolean canUsePackagerForInternalTransfer(@Nullable PackagerBlockEntity packager) {
+	private boolean canUsePackagerForInternalTransfer(@Nullable BioPackagerBlockEntity packager) {
 		return packager != null
 			&& packager.animationTicks <= 0
 			&& packager.heldBox.isEmpty();
 	}
 
 	private boolean queueUnpack(BlockPos packagerPos, ItemStack boxStack, boolean returnBox) {
-		PackagerBlockEntity packager = getPackager(packagerPos);
+		BioPackagerBlockEntity packager = getPackager(packagerPos);
 		if (!isPackagerSlotEmpty(packagerPos) || !canUsePackagerForInternalTransfer(packager))
 			return false;
 
 		packager.previouslyUnwrapped = boxStack.copy();
 		packager.animationInward = true;
-		packager.animationTicks = PackagerBlockEntity.CYCLE;
+		packager.animationTicks = BioPackagerBlockEntity.CYCLE;
 		packager.notifyUpdate();
 		packager.setChanged();
 
-		pendingUnpacks.add(new PendingUnpack(packagerPos, boxStack.copy(), PackagerBlockEntity.CYCLE, returnBox));
+		pendingUnpacks.add(new PendingUnpack(packagerPos, boxStack.copy(), BioPackagerBlockEntity.CYCLE, returnBox));
 		setChanged();
 		return true;
 	}
@@ -1895,7 +1895,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		if (output == null)
 			return false;
 
-		PackagerBlockEntity packager = getPackager(target.packagerPos);
+		BioPackagerBlockEntity packager = getPackager(target.packagerPos);
 		if (!canUsePackagerForInternalTransfer(packager))
 			return false;
 
@@ -1904,11 +1904,11 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		target.creeper.fallDistance = 0;
 		packager.heldBox = output.copy();
 		packager.animationInward = false;
-		packager.animationTicks = PackagerBlockEntity.CYCLE;
+		packager.animationTicks = BioPackagerBlockEntity.CYCLE;
 		packager.notifyUpdate();
 		packager.setChanged();
 		pendingPackagings.add(new PendingPackaging(target.packagerPos, output.copy(), target.creeper.getUUID(),
-			PackagerBlockEntity.CYCLE));
+			BioPackagerBlockEntity.CYCLE));
 		setChanged();
 		notifyUpdate();
 		return true;
@@ -1923,7 +1923,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		for (BlockPos packagerPos : getPackagerPositions()) {
 			if (isPackagerReserved(packagerPos) || isPackagerAppearing(packagerPos) || isPackagerPackaging(packagerPos))
 				continue;
-			PackagerBlockEntity packager = getPackager(packagerPos);
+			BioPackagerBlockEntity packager = getPackager(packagerPos);
 			if (!canUsePackagerForInternalTransfer(packager))
 				continue;
 
@@ -2042,7 +2042,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	private void clearPackagerAnimationState(BlockPos packagerPos) {
-		PackagerBlockEntity packager = getPackager(packagerPos);
+		BioPackagerBlockEntity packager = getPackager(packagerPos);
 		if (packager == null)
 			return;
 		packager.heldBox = ItemStack.EMPTY;
@@ -2113,7 +2113,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		for (int x = 1; x < structureSize - 1; x++) {
 			for (int z = 1; z < structureSize - 1; z++) {
 				BlockPos packagerPos = structureOrigin.offset(x, 0, z);
-				if (AllBlocks.PACKAGER.has(level.getBlockState(packagerPos)))
+				if (level.getBlockState(packagerPos).is(CBBlocks.BIO_PACKAGER.get()))
 					packagers.add(packagerPos);
 			}
 		}
@@ -2129,7 +2129,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		int z = packagerPos.getZ() - structureOrigin.getZ();
 		return x >= 1 && x < structureSize - 1
 			&& z >= 1 && z < structureSize - 1
-			&& AllBlocks.PACKAGER.has(level.getBlockState(packagerPos));
+			&& level.getBlockState(packagerPos).is(CBBlocks.BIO_PACKAGER.get());
 	}
 
 	private boolean isPressPartOfStructure(BlockPos pressPos) {
@@ -2454,12 +2454,12 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	@Nullable
-	private PackagerBlockEntity getPackager(BlockPos packagerPos) {
+	private BioPackagerBlockEntity getPackager(BlockPos packagerPos) {
 		Level level = getLevel();
-		if (level == null || !AllBlocks.PACKAGER.has(level.getBlockState(packagerPos)))
+		if (level == null || !level.getBlockState(packagerPos).is(CBBlocks.BIO_PACKAGER.get()))
 			return null;
 		BlockEntity blockEntity = level.getBlockEntity(packagerPos);
-		return blockEntity instanceof PackagerBlockEntity packager ? packager : null;
+		return blockEntity instanceof BioPackagerBlockEntity packager ? packager : null;
 	}
 
 	@Nullable
@@ -2719,7 +2719,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		private final UUID creeperUuid;
 
 		private PendingPackaging(BlockPos packagerPos, ItemStack boxStack, UUID creeperUuid, int ticksRemaining) {
-			super(ticksRemaining, PackagerBlockEntity.CYCLE);
+			super(ticksRemaining, BioPackagerBlockEntity.CYCLE);
 			this.packagerPos = packagerPos;
 			this.boxStack = boxStack;
 			this.creeperUuid = creeperUuid;

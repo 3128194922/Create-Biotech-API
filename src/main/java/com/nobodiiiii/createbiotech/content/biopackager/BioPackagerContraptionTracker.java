@@ -55,7 +55,7 @@ public final class BioPackagerContraptionTracker {
 		entry.states.put(localPos, new PackagingState(filledBox.copy(), CYCLE));
 		CBPackets.sendToTrackingEntity(
 			new BioPackagerContraptionAnimationPacket(contraptionEntity.getId(), localPos, filledBox, ItemStack.EMPTY,
-				false),
+				true),
 			contraptionEntity);
 	}
 
