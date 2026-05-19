@@ -9,8 +9,12 @@ import net.minecraft.world.level.Level;
 
 public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTankBlockEntity> {
 
+	private static final int XP_PER_ORB = 300;
 	private static final float ORB_SPEED = 0.06f; // blocks per tick - constant
 	private static final float ORB_TURN_RATE = 0.04f;
+	private static final float EDGE_PADDING = 0.15f;
+	private static final float HORIZONTAL_WANDER = 0.38f;
+	private static final float VERTICAL_WANDER = 0.46f;
 
 	public ExperienceTankRenderer(BlockEntityRendererProvider.Context context) {
 	}
@@ -24,22 +28,21 @@ public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTan
 		if (level == null)
 			return;
 
-		float fill = be.getFillState();
+		int storedExperience = be.getStoredExperience();
 		int height = be.getHeight();
 		int width = be.getWidth();
-		int volume = width * width * height;
-		int orbCount = Math.max(1, Math.min(64, (int) Math.ceil(fill * volume * 4.0f)));
+		int orbCount = Math.max(1, storedExperience / XP_PER_ORB);
 		float ageTicks = level.getGameTime() + partialTick;
 
-		float xMin = 0.2f;
-		float xMax = width - 0.2f;
-		float yMin = 0.2f;
-		float yMax = height - 0.2f;
-		float zMin = 0.2f;
-		float zMax = width - 0.2f;
+		float xMin = EDGE_PADDING;
+		float xMax = width - EDGE_PADDING;
+		float yMin = EDGE_PADDING;
+		float yMax = height - EDGE_PADDING;
+		float zMin = EDGE_PADDING;
+		float zMax = width - EDGE_PADDING;
+		float time = ageTicks * ORB_SPEED;
 
 		for (int i = 0; i < orbCount; i++) {
-			// Different prime offsets per orb create distinct Lissajous-style paths
 			float seedA = i * 13.7f;
 			float seedB = i * 17.3f + 5.1f;
 			float seedC = i * 23.1f + 11.7f;
@@ -47,24 +50,13 @@ public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTan
 			float seedE = i * 31.3f + 17.9f;
 			float seedF = i * 37.9f + 23.5f;
 
-			// Different frequency multipliers per axis & per orb -> chaotic non-overlapping motion
-			float fx1 = 1.0f + (i % 5) * 0.13f;
-			float fx2 = 0.7f + (i % 4) * 0.11f;
-			float fy1 = 0.83f + (i % 6) * 0.09f;
-			float fy2 = 1.27f + (i % 3) * 0.14f;
-			float fz1 = 1.13f + (i % 7) * 0.07f;
-			float fz2 = 0.91f + (i % 5) * 0.12f;
+			float baseX = radicalInverse(i + 1, 2);
+			float baseY = radicalInverse(i + 1, 3);
+			float baseZ = radicalInverse(i + 1, 5);
 
-			// ORB_SPEED * ageTicks gives a constant linear "phase" - speed independent of tank size
-			float t = ageTicks * ORB_SPEED;
-
-			float nx = 0.5f * ((float) Math.sin(t * fx1 + seedA) + (float) Math.sin(t * fx2 + seedB) * 0.5f);
-			float ny = 0.5f * ((float) Math.sin(t * fy1 + seedC) + (float) Math.sin(t * fy2 + seedD) * 0.5f);
-			float nz = 0.5f * ((float) Math.sin(t * fz1 + seedE) + (float) Math.sin(t * fz2 + seedF) * 0.5f);
-
-			nx = (nx + 1.5f) / 3.0f;
-			ny = (ny + 1.5f) / 3.0f;
-			nz = (nz + 1.5f) / 3.0f;
+			float nx = animatedCoordinate(baseX, time * (0.93f + (i % 5) * 0.11f), seedA, seedB, HORIZONTAL_WANDER);
+			float ny = animatedCoordinate(baseY, time * (0.71f + (i % 7) * 0.09f), seedC, seedD, VERTICAL_WANDER);
+			float nz = animatedCoordinate(baseZ, time * (1.08f + (i % 6) * 0.08f), seedE, seedF, HORIZONTAL_WANDER);
 
 			double x = xMin + nx * (xMax - xMin);
 			double y = yMin + ny * (yMax - yMin);
@@ -78,5 +70,33 @@ public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTan
 				icon, 1.0f);
 			poseStack.popPose();
 		}
+	}
+
+	private static float animatedCoordinate(float base, float time, float phaseA, float phaseB, float amplitude) {
+		float offset = (float) Math.sin(time + phaseA) * amplitude;
+		offset += (float) Math.sin(time * 0.61f + phaseB) * amplitude * 0.55f;
+		return reflectUnit(base + offset);
+	}
+
+	private static float reflectUnit(float value) {
+		float wrapped = value % 2.0f;
+		if (wrapped < 0)
+			wrapped += 2.0f;
+		return wrapped > 1.0f ? 2.0f - wrapped : wrapped;
+	}
+
+	private static float radicalInverse(int index, int base) {
+		float reversed = 0.0f;
+		float inverseBase = 1.0f / base;
+		float placeValue = inverseBase;
+		int value = index;
+
+		while (value > 0) {
+			reversed += (value % base) * placeValue;
+			value /= base;
+			placeValue *= inverseBase;
+		}
+
+		return reversed;
 	}
 }

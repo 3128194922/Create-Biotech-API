@@ -1,12 +1,23 @@
 package com.nobodiiiii.createbiotech.content.experience;
 
+import java.util.Collections;
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 import com.simibubi.create.foundation.block.ProperWaterloggedBlock;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.ExperienceOrb;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -18,6 +29,9 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -122,5 +136,32 @@ public class ExperienceClusterBlock extends Block implements ProperWaterloggedBl
 	@Override
 	public FluidState getFluidState(BlockState state) {
 		return fluidState(state);
+	}
+
+	@Override
+	@SuppressWarnings("deprecation")
+	public List<ItemStack> getDrops(BlockState state, LootParams.Builder builder) {
+		ItemStack tool = builder.getOptionalParameter(LootContextParams.TOOL);
+		Entity entity = builder.getOptionalParameter(LootContextParams.THIS_ENTITY);
+		boolean silkTouch = tool != null
+			&& EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, tool) > 0;
+		if (silkTouch)
+			return super.getDrops(state, builder);
+		if (!(entity instanceof Player)) {
+			ServerLevel serverLevel = builder.getLevel();
+			Vec3 origin = builder.getOptionalParameter(LootContextParams.ORIGIN);
+			if (origin == null)
+				origin = Vec3.atCenterOf(BlockPos.ZERO);
+			ExperienceOrb.award(serverLevel, origin, xpNuggetValue * ExperienceConstants.XP_PER_NUGGET);
+		}
+		return Collections.emptyList();
+	}
+
+	@Override
+	public int getExpDrop(BlockState state, LevelReader level, RandomSource random, BlockPos pos, int fortuneLevel,
+		int silkTouchLevel) {
+		if (silkTouchLevel > 0)
+			return 0;
+		return xpNuggetValue * ExperienceConstants.XP_PER_NUGGET;
 	}
 }
