@@ -67,12 +67,6 @@ public class HighPressureCreeperDrawable extends AnimatedKineticsWithEntities {
 			return;
 
 		float headOffset = getAnimatedHeadOffset();
-		renderPressBody(guiGraphics, xOffset, yOffset);
-		renderCreeper(guiGraphics, creeper, xOffset, yOffset, headOffset);
-		renderPressHead(guiGraphics, xOffset, yOffset, headOffset);
-	}
-
-	private void renderPressBody(GuiGraphics guiGraphics, int xOffset, int yOffset) {
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.pushPose();
 		poseStack.translate(xOffset, yOffset, PRESS_RENDER_Z);
@@ -88,15 +82,7 @@ public class HighPressureCreeperDrawable extends AnimatedKineticsWithEntities {
 			.scale(PRESS_SCALE)
 			.render(guiGraphics);
 
-		poseStack.popPose();
-	}
-
-	private void renderPressHead(GuiGraphics guiGraphics, int xOffset, int yOffset, float headOffset) {
-		PoseStack poseStack = guiGraphics.pose();
-		poseStack.pushPose();
-		poseStack.translate(xOffset, yOffset, PRESS_RENDER_Z);
-		poseStack.mulPose(Axis.XP.rotationDegrees(-15.5f));
-		poseStack.mulPose(Axis.YP.rotationDegrees(22.5f));
+		renderCreeper(guiGraphics, creeper, headOffset);
 
 		blockElement(AllPartialModels.MECHANICAL_PRESS_HEAD)
 			.atLocal(0, -headOffset, 0)
@@ -106,7 +92,7 @@ public class HighPressureCreeperDrawable extends AnimatedKineticsWithEntities {
 		poseStack.popPose();
 	}
 
-	private void renderCreeper(GuiGraphics guiGraphics, Creeper creeper, int xOffset, int yOffset, float headOffset) {
+	private void renderCreeper(GuiGraphics guiGraphics, Creeper creeper, float headOffset) {
 		float compression = getCompressionFromHeadOffset(headOffset);
 		float pulse = 0.5f + 0.5f * Mth.sin(AnimationTickHolder.getRenderTime() * 0.9f);
 		int renderSwell =
@@ -119,9 +105,7 @@ public class HighPressureCreeperDrawable extends AnimatedKineticsWithEntities {
 		float appliedHorizontalScale = Mth.lerp(compression, 1f, horizontalScale);
 		float appliedVerticalScale = Mth.lerp(compression, 1f, verticalScale);
 		entityElement(creeper)
-			.at(xOffset, yOffset, PRESS_RENDER_Z)
 			.atLocal(0.5d, CREEPER_ATTACHMENT_Y, 0.5d)
-			.rotate(-15.5d, 22.5d, 0d)
 			.dispatcherYaw(0f)
 			.scale(PRESS_SCALE)
 			.scaleEntity(appliedHorizontalScale, appliedVerticalScale, appliedHorizontalScale)
