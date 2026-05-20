@@ -9,6 +9,7 @@ import com.nobodiiiii.createbiotech.content.cardboardbox.CardboardBoxItem;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceClusterBlockItem;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceConstants;
 import com.nobodiiiii.createbiotech.content.experience.ExperienceTankItem;
+import com.nobodiiiii.createbiotech.content.evokerenchantingchamber.EvokerEnchantingChamberItem;
 import com.nobodiiiii.createbiotech.content.experience.HiddenExperienceItem;
 import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultItem;
 import com.nobodiiiii.createbiotech.content.cardboardbox.LargeCardboardBoxItem;
@@ -36,7 +37,7 @@ public class CBItems {
 		DeferredRegister.create(ForgeRegistries.ITEMS, CreateBiotech.MOD_ID);
 
 	public static final RegistryObject<Item> EVOKER_ENCHANTING_CHAMBER = ITEMS.register("evoker_enchanting_chamber",
-		() -> new BlockItem(CBBlocks.EVOKER_ENCHANTING_CHAMBER.get(), new Item.Properties()));
+		() -> new EvokerEnchantingChamberItem(CBBlocks.EVOKER_ENCHANTING_CHAMBER.get(), new Item.Properties()));
 
 	public static final RegistryObject<Item> EXPERIENCE_PUMP = ITEMS.register("experience_pump",
 		() -> new BlockItem(CBBlocks.EXPERIENCE_PUMP.get(), new Item.Properties()));
