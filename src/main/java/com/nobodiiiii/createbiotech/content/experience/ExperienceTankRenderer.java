@@ -2,9 +2,12 @@ package com.nobodiiiii.createbiotech.content.experience;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
+import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
 
 public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTankBlockEntity> {
@@ -28,6 +31,7 @@ public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTan
 		if (level == null)
 			return;
 
+		BlockPos controllerPos = be.getBlockPos();
 		int storedExperience = be.getStoredExperience();
 		int height = be.getHeight();
 		int width = be.getWidth();
@@ -62,11 +66,17 @@ public class ExperienceTankRenderer implements BlockEntityRenderer<ExperienceTan
 			double y = yMin + ny * (yMax - yMin);
 			double z = zMin + nz * (zMax - zMin);
 
+			BlockPos orbPos = new BlockPos(
+				controllerPos.getX() + Mth.floor(x),
+				controllerPos.getY() + Mth.floor(y),
+				controllerPos.getZ() + Mth.floor(z));
+			int orbLight = LevelRenderer.getLightColor(level, orbPos);
+
 			int icon = (int) ((seedA * 0.37f) + i) & 0x0F;
 
 			poseStack.pushPose();
 			poseStack.translate(x, y, z);
-			ExperienceOrbModelRenderer.render(poseStack, buffer, packedLight, ageTicks * ORB_TURN_RATE * 25f + seedA,
+			ExperienceOrbModelRenderer.render(poseStack, buffer, orbLight, ageTicks * ORB_TURN_RATE * 25f + seedA,
 				icon, 1.0f);
 			poseStack.popPose();
 		}

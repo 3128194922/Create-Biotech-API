@@ -50,6 +50,7 @@ import com.simibubi.create.content.contraptions.render.ContraptionEntityRenderer
 import com.simibubi.create.content.contraptions.render.ContraptionVisual;
 import com.simibubi.create.content.decoration.encasing.EncasedCTBehaviour;
 import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogVisual;
+import com.simibubi.create.content.kinetics.transmission.SplitShaftVisual;
 import com.simibubi.create.foundation.block.connected.CTModel;
 import com.simibubi.create.foundation.block.connected.SimpleCTBehaviour;
 
@@ -168,6 +169,9 @@ public class CreateBiotechClient {
 			SimpleBlockEntityVisualizer.builder(CBBlockEntityTypes.BONE_RATCHET.get())
 				.factory((context, blockEntity, partialTick) -> new EncasedCogVisual(context, blockEntity, false,
 					partialTick, Models.partial(BoneRatchetRenderer.COGWHEEL)))
+				.apply();
+			SimpleBlockEntityVisualizer.builder(CBBlockEntityTypes.SLIME_CLUTCH.get())
+				.factory(SplitShaftVisual::new)
 				.apply();
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.BIO_PACKAGER.get(), RenderType.cutoutMipped());
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.EXPERIENCE_PUMP.get(), RenderType.cutoutMipped());
