@@ -203,6 +203,9 @@ public class ExperienceTankBlockEntity extends BlockEntity
 						}
 					}
 					level.setBlock(pos, state.setValue(ExperienceTankBlock.SHAPE, shape), 22);
+					level.getChunkSource()
+						.getLightEngine()
+						.checkBlock(pos);
 				}
 			}
 		}
