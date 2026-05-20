@@ -48,9 +48,11 @@ public class EvokerEnchantingChamberBlockEntity extends BlockEntity
 	private static final double SPELL_GREEN = 0.3d;
 	private static final double SPELL_BLUE = 0.35d;
 	private static final double BOOK_FRONT_OFFSET = 4d / 16d;
-	private static final double BOOK_BASE_Y = 18d / 16d;
+	private static final double BOOK_BASE_Y = 20d / 16d;
 	private static final double BOOK_BOB_AMPLITUDE = 0.04d;
 	private static final double BOOK_BOB_SPEED = 0.08d;
+	private static final double BOOK_PARTICLE_SOURCE_SPREAD = 0.72d;
+	private static final double BOOK_PARTICLE_TARGET_SPREAD = 0.16d;
 	private static final double ITEM_BASE_Y = BOOK_BASE_Y + 6d / 16d;
 	private static final double ITEM_BOB_AMPLITUDE = 0.06d;
 	private static final double ITEM_BOB_SPEED = 0.1d;
@@ -269,7 +271,7 @@ public class EvokerEnchantingChamberBlockEntity extends BlockEntity
 	@Override
 	protected void saveAdditional(CompoundTag tag) {
 		super.saveAdditional(tag);
-		if (getController() != this)
+		if (isUpperHalf())
 			return;
 		tag.putInt("XpRemaining", xpRemaining);
 		tag.putInt("XpTotal", xpTotal);
@@ -284,7 +286,7 @@ public class EvokerEnchantingChamberBlockEntity extends BlockEntity
 	@Override
 	public void load(CompoundTag tag) {
 		super.load(tag);
-		if (getController() != this) {
+		if (isUpperHalf()) {
 			xpRemaining = 0;
 			xpTotal = 0;
 			storedExperience = 0;
@@ -420,6 +422,11 @@ public class EvokerEnchantingChamberBlockEntity extends BlockEntity
 		return new ChamberItemHandler();
 	}
 
+	private boolean isUpperHalf() {
+		return getBlockState().hasProperty(EvokerEnchantingChamberBlock.HALF)
+			&& getBlockState().getValue(EvokerEnchantingChamberBlock.HALF) == DoubleBlockHalf.UPPER;
+	}
+
 	public EvokerEnchantingChamberBlockEntity getController() {
 		if (level == null || getBlockState().getValue(EvokerEnchantingChamberBlock.HALF) == DoubleBlockHalf.LOWER)
 			return this;
@@ -507,11 +514,11 @@ public class EvokerEnchantingChamberBlockEntity extends BlockEntity
 		double targetY = pos.getY() + ITEM_BASE_Y + Mth.sin((float) (time * ITEM_BOB_SPEED)) * ITEM_BOB_AMPLITUDE;
 
 		for (int i = 0; i < 3; i++) {
-			double startX = anchorX + (level.random.nextDouble() - 0.5d) * 0.45d;
+			double startX = anchorX + (level.random.nextDouble() - 0.5d) * BOOK_PARTICLE_SOURCE_SPREAD;
 			double startY = sourceY - 0.1d + level.random.nextDouble() * 0.12d;
-			double startZ = anchorZ + (level.random.nextDouble() - 0.5d) * 0.45d;
-			double targetX = anchorX + (level.random.nextDouble() - 0.5d) * 0.1d;
-			double targetZ = anchorZ + (level.random.nextDouble() - 0.5d) * 0.1d;
+			double startZ = anchorZ + (level.random.nextDouble() - 0.5d) * BOOK_PARTICLE_SOURCE_SPREAD;
+			double targetX = anchorX + (level.random.nextDouble() - 0.5d) * BOOK_PARTICLE_TARGET_SPREAD;
+			double targetZ = anchorZ + (level.random.nextDouble() - 0.5d) * BOOK_PARTICLE_TARGET_SPREAD;
 			level.sendParticles(CBParticleTypes.STRAIGHT_ENCHANT.get(), startX, startY, startZ, 0,
 				targetX - startX, targetY - startY, targetZ - startZ, 1.0d);
 		}

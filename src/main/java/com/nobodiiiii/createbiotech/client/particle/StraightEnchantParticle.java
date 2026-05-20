@@ -35,7 +35,7 @@ public class StraightEnchantParticle extends TextureSheetParticle {
 		friction = 1.0f;
 		lifetime = 10 + random.nextInt(5);
 		lastVisibleAge = Math.max(1, lifetime - 1);
-		quadSize = 0.1f * (0.7f + random.nextFloat() * 0.4f);
+		quadSize = 0.06f * (0.75f + random.nextFloat() * 0.35f);
 		float tint = random.nextFloat() * 0.6f + 0.4f;
 		rCol = 0.9f * tint;
 		gCol = 0.9f * tint;
