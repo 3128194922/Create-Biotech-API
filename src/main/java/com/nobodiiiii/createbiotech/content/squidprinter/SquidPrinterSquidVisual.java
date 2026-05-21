@@ -16,6 +16,7 @@ public final class SquidPrinterSquidVisual {
 		new ResourceLocation("minecraft", "textures/entity/squid/squid.png");
 	static final float RENDER_SCALE = 0.8f;
 	static final float MODEL_HEIGHT_BLOCKS = 33.0f / 16.0f;
+	static final double RUNNING_Y_LIFT = 0.03d;
 
 	private static final float RUN_CYCLE_SPEED = 0.045f;
 	private static final float RUN_MIN_TENTACLE_ANGLE = 0.14f;

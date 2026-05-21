@@ -111,12 +111,14 @@ public class SquidPrinterRenderer extends SafeBlockEntityRenderer<SquidPrinterBl
 	private void renderSquid(SquidPrinterBlockEntity be, float partialTicks, PoseStack ms, MultiBufferSource buffer,
 		int light) {
 		float scale = SquidPrinterSquidVisual.RENDER_SCALE;
+		boolean running = be.isRunning() && be.getLevel() != null;
+		double squidY = running ? 1.0d + SquidPrinterSquidVisual.RUNNING_Y_LIFT : 1.0d;
 		BlockEntityModelElement.builder()
-			.atLocal(0.5d, 1.0d, 0.5d)
+			.atLocal(0.5d, squidY, 0.5d)
 			.scale(-scale, -scale, scale)
 			.packedLight(light)
 			.render(ms, buffer, (poseStack, buf, lightArg) -> {
-				if (be.isRunning() && be.getLevel() != null) {
+				if (running) {
 					SquidPrinterSquidVisual.prepareRunningModel(squidModel,
 						SquidPrinterSquidVisual.runningCycleFromRenderTime(AnimationTickHolder.getRenderTime(be.getLevel())));
 				} else {
