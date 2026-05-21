@@ -558,6 +558,47 @@ public final class GeneratedPonderSupport {
         scene.effects().emitParticles(location, emitter, amountPerCycle, Math.max(1, cycles));
     }
 
+    public static void startCompressionAnimation(SceneBuilder scene, String entityId,
+                                                 int delay, int rampUp, int hold, int rampDown, float peak) {
+        ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
+        scene.world().modifyEntities(net.minecraft.world.entity.monster.Creeper.class, creeper -> {
+            if (filter != null && !EntityType.getKey(creeper.getType()).equals(filter)) {
+                return;
+            }
+            long startTick = creeper.level() == null ? 0L : creeper.level().getGameTime();
+            CompoundTag animTag = new CompoundTag();
+            animTag.putLong("StartTick", startTick);
+            animTag.putInt("Delay", Math.max(0, delay));
+            animTag.putInt("RampUp", Math.max(0, rampUp));
+            animTag.putInt("Hold", Math.max(0, hold));
+            animTag.putInt("RampDown", Math.max(0, rampDown));
+            animTag.putFloat("Peak", peak);
+            CompoundTag forgeData = creeper.getPersistentData();
+            String root = "create_biotech";
+            CompoundTag biotech = forgeData.contains(root, Tag.TAG_COMPOUND)
+                ? forgeData.getCompound(root) : new CompoundTag();
+            biotech.put("PonderCompressionAnim", animTag);
+            biotech.remove("PonderCompression");
+            forgeData.put(root, biotech);
+        });
+    }
+
+    public static void clearCompressionAnimation(SceneBuilder scene, String entityId) {
+        ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
+        scene.world().modifyEntities(net.minecraft.world.entity.monster.Creeper.class, creeper -> {
+            if (filter != null && !EntityType.getKey(creeper.getType()).equals(filter)) {
+                return;
+            }
+            CompoundTag forgeData = creeper.getPersistentData();
+            if (!forgeData.contains("create_biotech", Tag.TAG_COMPOUND)) {
+                return;
+            }
+            CompoundTag biotech = forgeData.getCompound("create_biotech");
+            biotech.remove("PonderCompressionAnim");
+            biotech.remove("PonderCompression");
+        });
+    }
+
     public static void clearEntities(SceneBuilder scene, boolean fullScene, String entityId,
                                      BlockPos pos1, BlockPos pos2) {
         ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);

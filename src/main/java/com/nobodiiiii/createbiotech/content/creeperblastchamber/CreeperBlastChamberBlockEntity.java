@@ -92,6 +92,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private static final String CONTROLLER_POS_TAG = "CreeperBlastChamberControllerPos";
 	private static final String PACKAGER_POS_TAG = "CreeperBlastChamberPackagerPos";
 	public static final String PONDER_COMPRESSION_TAG = "PonderCompression";
+	public static final String PONDER_COMPRESSION_ANIM_TAG = "PonderCompressionAnim";
 	private static final String PENDING_UNPACKS_TAG = "PendingUnpacks";
 	private static final String PENDING_PACKAGINGS_TAG = "PendingPackagings";
 	private static final String PENDING_APPEARANCES_TAG = "PendingAppearances";
@@ -2506,8 +2507,14 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 
 	public static float getClientWorkingCreeperCompression(Creeper creeper, float partialTicks) {
 		CompoundTag biotechData = getExistingCreateBiotechData(creeper);
-		if (biotechData != null && biotechData.contains(PONDER_COMPRESSION_TAG, Tag.TAG_FLOAT)) {
-			return Mth.clamp(biotechData.getFloat(PONDER_COMPRESSION_TAG), 0f, 1f);
+		if (biotechData != null) {
+			if (biotechData.contains(PONDER_COMPRESSION_ANIM_TAG, Tag.TAG_COMPOUND)) {
+				return computePonderCompressionAnim(creeper, partialTicks,
+					biotechData.getCompound(PONDER_COMPRESSION_ANIM_TAG));
+			}
+			if (biotechData.contains(PONDER_COMPRESSION_TAG, Tag.TAG_FLOAT)) {
+				return Mth.clamp(biotechData.getFloat(PONDER_COMPRESSION_TAG), 0f, 1f);
+			}
 		}
 		Level level = creeper.level();
 		ClientTrackedCreeper tracked = CLIENT_TRACKED_CREEPERS.get(creeper.getUUID());
@@ -2524,7 +2531,35 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 
 	public static boolean isPonderCompressionActive(Creeper creeper) {
 		CompoundTag biotechData = getExistingCreateBiotechData(creeper);
-		return biotechData != null && biotechData.contains(PONDER_COMPRESSION_TAG, Tag.TAG_FLOAT);
+		return biotechData != null
+			&& (biotechData.contains(PONDER_COMPRESSION_TAG, Tag.TAG_FLOAT)
+				|| biotechData.contains(PONDER_COMPRESSION_ANIM_TAG, Tag.TAG_COMPOUND));
+	}
+
+	private static float computePonderCompressionAnim(Creeper creeper, float partialTicks, CompoundTag anim) {
+		long startTick = anim.getLong("StartTick");
+		int delay = anim.getInt("Delay");
+		int rampUp = anim.getInt("RampUp");
+		int hold = anim.getInt("Hold");
+		int rampDown = anim.getInt("RampDown");
+		float peak = anim.contains("Peak", Tag.TAG_FLOAT) ? anim.getFloat("Peak") : 1f;
+		Level level = creeper.level();
+		if (level == null)
+			return 0f;
+		float now = level.getGameTime() + partialTicks;
+		float elapsed = now - startTick;
+		if (elapsed <= delay)
+			return 0f;
+		elapsed -= delay;
+		if (rampUp > 0 && elapsed < rampUp)
+			return Mth.clamp(peak * (elapsed / rampUp), 0f, 1f);
+		elapsed -= rampUp;
+		if (elapsed < hold)
+			return Mth.clamp(peak, 0f, 1f);
+		elapsed -= hold;
+		if (rampDown > 0 && elapsed < rampDown)
+			return Mth.clamp(peak * (1f - elapsed / rampDown), 0f, 1f);
+		return 0f;
 	}
 
 	public static float getSynchronizedPressHeadProgress(@Nullable MechanicalPressBlockEntity press, float partialTicks) {

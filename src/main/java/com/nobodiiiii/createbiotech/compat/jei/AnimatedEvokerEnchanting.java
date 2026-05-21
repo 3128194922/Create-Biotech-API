@@ -27,6 +27,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -133,18 +134,28 @@ public class AnimatedEvokerEnchanting extends AnimatedKineticsWithEntities {
 		UIRenderHelper.flipForGuiRender(graphics.pose());
 
 		ParticleRenderType renderType = ParticleRenderType.PARTICLE_SHEET_OPAQUE;
+		LightTexture lightTexture = Minecraft.getInstance().gameRenderer.lightTexture();
+		lightTexture.turnOnLightLayer();
 		RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
+		RenderSystem.disableCull();
+		RenderSystem.enableDepthTest();
 		RenderSystem.enableBlend();
 		RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 		RenderSystem.depthMask(true);
 
-		BufferBuilder builder = Tesselator.getInstance().getBuilder();
-		renderType.begin(builder, Minecraft.getInstance().textureManager);
-		VertexConsumer transformed = new PoseStackVertexConsumer(builder, graphics.pose().last().pose());
-		float partialTicks = AnimationTickHolder.getPartialTicks();
-		for (Particle particle : activeParticles)
-			particle.render(transformed, camera, partialTicks);
-		renderType.end(Tesselator.getInstance());
+		try {
+			BufferBuilder builder = Tesselator.getInstance().getBuilder();
+			renderType.begin(builder, Minecraft.getInstance().textureManager);
+			VertexConsumer transformed = new PoseStackVertexConsumer(builder, graphics.pose().last().pose());
+			float partialTicks = AnimationTickHolder.getPartialTicks();
+			for (Particle particle : activeParticles)
+				particle.render(transformed, camera, partialTicks);
+			renderType.end(Tesselator.getInstance());
+		} finally {
+			RenderSystem.enableCull();
+			RenderSystem.disableBlend();
+			lightTexture.turnOffLightLayer();
+		}
 
 		graphics.pose().popPose();
 	}
