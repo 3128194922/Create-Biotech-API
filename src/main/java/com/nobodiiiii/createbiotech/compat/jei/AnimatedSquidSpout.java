@@ -10,7 +10,6 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import com.nobodiiiii.createbiotech.content.squidprinter.SquidPrinterBlockEntity;
 import com.simibubi.create.AllBlocks;
@@ -18,7 +17,6 @@ import com.simibubi.create.AllPartialModels;
 
 import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.gui.UIRenderHelper;
-import net.createmod.catnip.platform.CatnipClientServices;
 import net.createmod.catnip.platform.ForgeCatnipServices;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -26,6 +24,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.MultiBufferSource.BufferSource;
@@ -144,6 +143,10 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 		ParticleRenderType renderType = ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
 		LightTexture lightTexture = Minecraft.getInstance().gameRenderer.lightTexture();
 		lightTexture.turnOnLightLayer();
+		PoseStack modelView = RenderSystem.getModelViewStack();
+		modelView.pushPose();
+		modelView.mulPoseMatrix(poseStack.last().pose());
+		RenderSystem.applyModelViewMatrix();
 		RenderSystem.setShaderTexture(0, TextureAtlas.LOCATION_PARTICLES);
 		RenderSystem.disableCull();
 		RenderSystem.enableDepthTest();
@@ -153,13 +156,15 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 
 		try {
 			BufferBuilder builder = Tesselator.getInstance().getBuilder();
+			RenderSystem.setShader(GameRenderer::getParticleShader);
 			renderType.begin(builder, Minecraft.getInstance().textureManager);
-			VertexConsumer transformed = new PoseStackVertexConsumer(builder, poseStack.last().pose());
 			float partialTicks = AnimationTickHolder.getPartialTicks();
 			for (Particle particle : activeParticles)
-				particle.render(transformed, camera, partialTicks);
+				particle.render(builder, camera, partialTicks);
 			renderType.end(Tesselator.getInstance());
 		} finally {
+			modelView.popPose();
+			RenderSystem.applyModelViewMatrix();
 			RenderSystem.enableCull();
 			RenderSystem.disableBlend();
 			lightTexture.turnOffLightLayer();
@@ -193,11 +198,11 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 	}
 
 	private void spawnInkParticle(double x, double y, double z, double dx, double dy, double dz) {
-		ClientLevel level = Minecraft.getInstance().level;
+		Minecraft minecraft = Minecraft.getInstance();
+		ClientLevel level = minecraft.level;
 		if (level == null)
 			return;
-		Particle particle = CatnipClientServices.CLIENT_HOOKS.createParticleFromData(ParticleTypes.SQUID_INK, level, x,
-			y, z, dx, dy, dz);
+		Particle particle = minecraft.particleEngine.createParticle(ParticleTypes.SQUID_INK, x, y, z, dx, dy, dz);
 		if (particle != null)
 			activeParticles.add(particle);
 	}
@@ -208,61 +213,6 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 			.rotateX((float) Math.toRadians(15.5f));
 		jeiParticleCamera.configure(0.0d, 0.0d, 0.0d, inverseSceneRotation);
 		return jeiParticleCamera;
-	}
-
-	private static class PoseStackVertexConsumer implements VertexConsumer {
-		private final VertexConsumer delegate;
-		private final org.joml.Matrix4f pose;
-
-		private PoseStackVertexConsumer(VertexConsumer delegate, org.joml.Matrix4f pose) {
-			this.delegate = delegate;
-			this.pose = new org.joml.Matrix4f(pose);
-		}
-
-		@Override
-		public VertexConsumer vertex(double x, double y, double z) {
-			return delegate.vertex(pose, (float) x, (float) y, (float) z);
-		}
-
-		@Override
-		public VertexConsumer color(int red, int green, int blue, int alpha) {
-			return delegate.color(red, green, blue, alpha);
-		}
-
-		@Override
-		public VertexConsumer uv(float u, float v) {
-			return delegate.uv(u, v);
-		}
-
-		@Override
-		public VertexConsumer overlayCoords(int u, int v) {
-			return delegate.overlayCoords(u, v);
-		}
-
-		@Override
-		public VertexConsumer uv2(int u, int v) {
-			return delegate.uv2(u, v);
-		}
-
-		@Override
-		public VertexConsumer normal(float x, float y, float z) {
-			return delegate.normal(x, y, z);
-		}
-
-		@Override
-		public void endVertex() {
-			delegate.endVertex();
-		}
-
-		@Override
-		public void defaultColor(int red, int green, int blue, int alpha) {
-			delegate.defaultColor(red, green, blue, alpha);
-		}
-
-		@Override
-		public void unsetDefaultColor() {
-			delegate.unsetDefaultColor();
-		}
 	}
 
 	private static class PreviewCamera extends Camera {

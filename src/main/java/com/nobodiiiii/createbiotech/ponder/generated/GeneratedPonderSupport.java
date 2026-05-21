@@ -559,19 +559,18 @@ public final class GeneratedPonderSupport {
     }
 
     public static void startCompressionAnimation(SceneBuilder scene, String entityId,
-                                                 int delay, int rampUp, int hold, int rampDown, float peak) {
+                                                 int rtStart, int kineticSpeed, float peak) {
         ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
+        int tickSpeed = kineticSpeed == 0 ? 0
+            : (int) net.minecraft.util.Mth.lerp(net.minecraft.util.Mth.clamp(Math.abs(kineticSpeed) / 512f, 0f, 1f), 1f, 60f);
         scene.world().modifyEntities(net.minecraft.world.entity.monster.Creeper.class, creeper -> {
             if (filter != null && !EntityType.getKey(creeper.getType()).equals(filter)) {
                 return;
             }
-            long startTick = creeper.level() == null ? 0L : creeper.level().getGameTime();
             CompoundTag animTag = new CompoundTag();
-            animTag.putLong("StartTick", startTick);
-            animTag.putInt("Delay", Math.max(0, delay));
-            animTag.putInt("RampUp", Math.max(0, rampUp));
-            animTag.putInt("Hold", Math.max(0, hold));
-            animTag.putInt("RampDown", Math.max(0, rampDown));
+            animTag.putInt("StartTick", creeper.tickCount);
+            animTag.putInt("RtStart", rtStart);
+            animTag.putInt("TickSpeed", tickSpeed);
             animTag.putFloat("Peak", peak);
             CompoundTag forgeData = creeper.getPersistentData();
             String root = "create_biotech";

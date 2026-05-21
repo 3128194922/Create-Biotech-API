@@ -2537,29 +2537,24 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	private static float computePonderCompressionAnim(Creeper creeper, float partialTicks, CompoundTag anim) {
-		long startTick = anim.getLong("StartTick");
-		int delay = anim.getInt("Delay");
-		int rampUp = anim.getInt("RampUp");
-		int hold = anim.getInt("Hold");
-		int rampDown = anim.getInt("RampDown");
+		int startTick = anim.getInt("StartTick");
+		int rtStart = anim.getInt("RtStart");
+		int tickSpeed = anim.getInt("TickSpeed");
 		float peak = anim.contains("Peak", Tag.TAG_FLOAT) ? anim.getFloat("Peak") : 1f;
-		Level level = creeper.level();
-		if (level == null)
+		float elapsed = (creeper.tickCount + partialTicks) - startTick;
+		if (elapsed < 0)
 			return 0f;
-		float now = level.getGameTime() + partialTicks;
-		float elapsed = now - startTick;
-		if (elapsed <= delay)
+		float rt = rtStart + elapsed * tickSpeed;
+		if (rt < 0f || rt >= 240f)
 			return 0f;
-		elapsed -= delay;
-		if (rampUp > 0 && elapsed < rampUp)
-			return Mth.clamp(peak * (elapsed / rampUp), 0f, 1f);
-		elapsed -= rampUp;
-		if (elapsed < hold)
-			return Mth.clamp(peak, 0f, 1f);
-		elapsed -= hold;
-		if (rampDown > 0 && elapsed < rampDown)
-			return Mth.clamp(peak * (1f - elapsed / rampDown), 0f, 1f);
-		return 0f;
+		float progress;
+		if (rt < 160f)
+			progress = (float) Math.pow(rt / 240f * 2f, 3);
+		else
+			progress = (240f - rt) / 240f * 3f;
+		progress = Mth.clamp(progress, 0f, 1f);
+		return Mth.clamp((progress - CLIENT_PRESS_EFFECT_START_OFFSET)
+			/ (1f - CLIENT_PRESS_EFFECT_START_OFFSET), 0f, 1f) * peak;
 	}
 
 	public static float getSynchronizedPressHeadProgress(@Nullable MechanicalPressBlockEntity press, float partialTicks) {
