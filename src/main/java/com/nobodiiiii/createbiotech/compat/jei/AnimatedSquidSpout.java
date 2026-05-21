@@ -41,6 +41,14 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 	private static final double SQUID_SCALE = 0.8d;
 	private static final int SCENE_SCALE = 20;
 	private static final BlockPos PARTICLE_ORIGIN = BlockPos.ZERO;
+	private static final double JEI_INK_RANGE_SCALE = 0.5d;
+	private static final float JEI_INK_SIZE_SCALE = 0.5f;
+	private static final double BURST_CENTER_X = 0.5d;
+	private static final double BURST_CENTER_Y = -0.5d;
+	private static final double BURST_CENTER_Z = 0.5d;
+	private static final double AMBIENT_CENTER_X = 0.5d;
+	private static final double AMBIENT_CENTER_Y = 0.05d;
+	private static final double AMBIENT_CENTER_Z = 0.5d;
 	private static final int BURST_PHASE_TICKS = 3;
 	private static final int CYCLE_LENGTH_TICKS = 30;
 
@@ -191,19 +199,34 @@ public class AnimatedSquidSpout extends AnimatedKineticsWithEntities {
 			cycleTick += CYCLE_LENGTH_TICKS;
 
 		if (cycleTick >= BURST_PHASE_TICKS)
-			SquidPrinterBlockEntity.forEachBurstInkParticle(level, PARTICLE_ORIGIN, this::spawnInkParticle);
+			SquidPrinterBlockEntity.forEachBurstInkParticle(level, PARTICLE_ORIGIN,
+				(x, y, z, dx, dy, dz) -> spawnScaledInkParticle(x, y, z, dx, dy, dz, BURST_CENTER_X, BURST_CENTER_Y,
+					BURST_CENTER_Z));
 		if (currentTick % 3 == 0 && cycleTick >= BURST_PHASE_TICKS)
-			SquidPrinterBlockEntity.forEachAmbientInkParticle(level, PARTICLE_ORIGIN, this::spawnInkParticle);
+			SquidPrinterBlockEntity.forEachAmbientInkParticle(level, PARTICLE_ORIGIN,
+				(x, y, z, dx, dy, dz) -> spawnScaledInkParticle(x, y, z, dx, dy, dz, AMBIENT_CENTER_X,
+					AMBIENT_CENTER_Y, AMBIENT_CENTER_Z));
 	}
 
-	private void spawnInkParticle(double x, double y, double z, double dx, double dy, double dz) {
+	private void spawnScaledInkParticle(double x, double y, double z, double dx, double dy, double dz,
+		double anchorX, double anchorY, double anchorZ) {
+		double scaledX = anchorX + (x - anchorX) * JEI_INK_RANGE_SCALE;
+		double scaledY = anchorY + (y - anchorY) * JEI_INK_RANGE_SCALE;
+		double scaledZ = anchorZ + (z - anchorZ) * JEI_INK_RANGE_SCALE;
+		double scaledDx = dx * JEI_INK_RANGE_SCALE;
+		double scaledDy = dy * JEI_INK_RANGE_SCALE;
+		double scaledDz = dz * JEI_INK_RANGE_SCALE;
+
 		Minecraft minecraft = Minecraft.getInstance();
 		ClientLevel level = minecraft.level;
 		if (level == null)
 			return;
-		Particle particle = minecraft.particleEngine.createParticle(ParticleTypes.SQUID_INK, x, y, z, dx, dy, dz);
-		if (particle != null)
+		Particle particle = minecraft.particleEngine.createParticle(ParticleTypes.SQUID_INK, scaledX, scaledY,
+			scaledZ, scaledDx, scaledDy, scaledDz);
+		if (particle != null) {
+			particle.scale(JEI_INK_SIZE_SCALE);
 			activeParticles.add(particle);
+		}
 	}
 
 	private Camera setupJeiParticleCamera() {
