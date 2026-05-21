@@ -38,10 +38,14 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 	// Budget can grow up to this so a single cluster (192 XP) can be pulled at low speeds.
 	private static final double MAX_BUDGET_BACKLOG = 256.0d;
 
-	// Emission accumulator: spit a single big orb when this threshold is hit,
-	// or after holding XP for this many ticks (whichever comes first).
-	private static final int EMISSION_LARGE_ORB_THRESHOLD = 64;
-	private static final int EMISSION_MAX_HOLD_TICKS = 30;
+	// Emission accumulator: flush as a burst of up to MAX_ORBS_PER_FLUSH orbs when this threshold
+	// is hit, or after holding XP for this many ticks (whichever comes first).
+	private static final int EMISSION_LARGE_ORB_THRESHOLD = 16;
+	private static final int EMISSION_MAX_HOLD_TICKS = 5;
+	private static final int MAX_ORBS_PER_FLUSH = 5;
+	// Below this much XP a flush emits a single orb instead of splitting — keeps small flushes
+	// from showering tiny <icon-3 orbs everywhere.
+	private static final int MIN_XP_PER_SPLIT_ORB = 37;
 
 	private double fractionalXp;
 	private int pendingEmissionXp;
@@ -285,27 +289,53 @@ public class ExperiencePumpBlockEntity extends KineticBlockEntity {
 		Direction outputSide = getOutputSide();
 		BlockPos outputPos = worldPosition.relative(outputSide);
 		boolean nozzle = isNozzleFacing(outputPos, outputSide);
-		// Spawn regardless of whether the output is still open — if a block was placed
-		// in front after we buffered, physics will push the orb back into open space.
-		// Discarding instead would silently lose XP.
 		int amount = pendingEmissionXp;
 		pendingEmissionXp = 0;
 		pendingEmissionTicks = 0;
-		spawnLargeOrb(outputSide, nozzle, amount);
+		spawnExperienceOrbs(outputSide, nozzle, amount);
 	}
 
-	private void spawnLargeOrb(Direction outputSide, boolean nozzle, int amount) {
+	private void spawnExperienceOrbs(Direction outputSide, boolean nozzle, int amount) {
 		Vec3 direction = Vec3.atLowerCornerOf(outputSide.getNormal());
+		// Spawn just outside the pump's output face (the "mouth"), not in the next block's center.
+		// Pump face is 0.5 from center; orb bbox half-extent is 0.25, so 0.8 gives small clearance.
 		Vec3 base = Vec3.atCenterOf(worldPosition)
-			.add(direction.scale(nozzle ? 1.8d : 1.05d));
+			.add(direction.scale(0.8d));
 		double normalizedSpeed = Math.min(Math.abs(getSpeed()) / ExperienceConstants.SPEED_NORMALIZATION_RPM, 1.0d);
-		ExperienceOrb orb = new ExperienceOrb(level, base.x, base.y, base.z, amount);
-		if (nozzle)
-			orb.setDeltaMovement(direction.scale(0.08d + normalizedSpeed * 0.18d));
-		// ExperienceOrb's EntityType uses updateInterval(20); force velocity sync so the
-		// initial motion isn't visually delayed by ~1s of position-only packets.
-		orb.hurtMarked = true;
-		level.addFreshEntity(orb);
+		double velMag = (nozzle ? 0.12d : 0.08d) + normalizedSpeed * 0.15d;
+		Vec3 baseVelocity = direction.scale(velMag);
+
+		// Cap the burst at MAX_ORBS_PER_FLUSH and consolidate everything else into per-orb value.
+		// Each orb gets a slightly different value (spread around the mean) so vanilla's
+		// tryMergeToExisting can't fold same-value orbs back into one entity.
+		int orbCount = Math.max(1, Math.min(MAX_ORBS_PER_FLUSH, amount / MIN_XP_PER_SPLIT_ORB));
+		int baseValue = amount / orbCount;
+		int remainder = amount - baseValue * orbCount;
+		for (int i = 0; i < orbCount; i++) {
+			int value = baseValue + i - (orbCount - 1) / 2;
+			if (orbCount - 1 - i < remainder)
+				value++;
+			if (value < 1)
+				value = 1;
+			Vec3 spread = randomPerpendicular(outputSide, 0.05d);
+			ExperienceOrb orb = new ExperienceOrb(level, base.x + spread.x, base.y + spread.y, base.z + spread.z,
+				value);
+			orb.setDeltaMovement(baseVelocity.add(spread));
+			// ExperienceOrb's EntityType uses updateInterval(20); force velocity sync so the
+			// initial motion isn't visually delayed by ~1s of position-only packets.
+			orb.hurtMarked = true;
+			level.addFreshEntity(orb);
+		}
+	}
+
+	private Vec3 randomPerpendicular(Direction direction, double scale) {
+		double a = (level.random.nextDouble() - 0.5d) * scale;
+		double b = (level.random.nextDouble() - 0.5d) * scale;
+		return switch (direction.getAxis()) {
+			case X -> new Vec3(0, a, b);
+			case Y -> new Vec3(a, 0, b);
+			case Z -> new Vec3(a, b, 0);
+		};
 	}
 
 	private static AABB cubeAround(Vec3 center, double halfExtent) {

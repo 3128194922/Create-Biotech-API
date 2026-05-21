@@ -9,7 +9,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.BookModel;
 import net.minecraft.client.model.IllagerModel;
 import net.minecraft.client.model.geom.ModelLayers;
-import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
@@ -20,9 +19,6 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.monster.Evoker;
-import net.minecraft.world.entity.monster.SpellcasterIllager;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -31,8 +27,6 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<EvokerEnchantingChamberBlockEntity> {
 
-	private static final ResourceLocation EVOKER_TEXTURE =
-		new ResourceLocation("minecraft", "textures/entity/illager/evoker.png");
 	private static final ResourceLocation BOOK_TEXTURE =
 		new ResourceLocation("minecraft", "textures/entity/enchanting_table_book.png");
 
@@ -59,22 +53,11 @@ public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<Evok
 	private static final float ITEM_SPIN_SPEED = 2.5f;
 	private static final float ITEM_SCALE = 0.7f;
 
-	private static final float HEAD_X_ROT = 0.08726646f;
-	private static final float RIGHT_LEG_X_ROT = -1.4137167f;
-	private static final float RIGHT_LEG_Y_ROT = 0.31415927f;
-	private static final float RIGHT_LEG_Z_ROT = 0.07853982f;
-	private static final float LEFT_LEG_X_ROT = -1.4137167f;
-	private static final float LEFT_LEG_Y_ROT = -0.31415927f;
-	private static final float LEFT_LEG_Z_ROT = -0.07853982f;
-	private static final float ARM_CAST_X_ROT = -0.95f;
-	private static final float ARM_CAST_Y_ROT = 0.18f;
-	private static final float ARM_RAISED_Z_ROT = 2.3561945f;
-
 	private final BlockRenderDispatcher blockRenderer;
-	private final IllagerModel<RenderEvoker> evokerModel;
+	private final net.minecraft.client.model.IllagerModel<EvokerEnchantingVisual.RenderEvoker> evokerModel;
 	private final BookModel bookModel;
 	private final BlockState enchantingTableState;
-	private RenderEvoker cachedEvoker;
+	private EvokerEnchantingVisual.RenderEvoker cachedEvoker;
 	private ClientLevel cachedLevel;
 
 	public EvokerEnchantingChamberRenderer(BlockEntityRendererProvider.Context context) {
@@ -108,7 +91,7 @@ public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<Evok
 
 	private void renderEvoker(EvokerEnchantingChamberBlockEntity blockEntity, float partialTick, PoseStack poseStack,
 		MultiBufferSource buffer, int packedLight, Direction facing) {
-		RenderEvoker evoker = getOrCreateEvoker(blockEntity.getLevel());
+		EvokerEnchantingVisual.RenderEvoker evoker = getOrCreateEvoker(blockEntity.getLevel());
 		if (evoker == null)
 			return;
 
@@ -122,10 +105,8 @@ public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<Evok
 			.rotateY(180.0f - facing.toYRot())
 			.scale(-EVOKER_SCALE, -EVOKER_SCALE, EVOKER_SCALE)
 			.packedLight(packedLight)
-			.render(poseStack, buffer, (ms, buf, lightArg) -> {
-				VertexConsumer consumer = buf.getBuffer(evokerModel.renderType(EVOKER_TEXTURE));
-				evokerModel.renderToBuffer(ms, consumer, lightArg, OverlayTexture.NO_OVERLAY, 1f, 1f, 1f, 1f);
-			});
+			.render(poseStack, buffer,
+				(ms, buf, lightArg) -> EvokerEnchantingVisual.renderModel(evokerModel, ms, buf, lightArg));
 	}
 
 	private void renderBook(EvokerEnchantingChamberBlockEntity be, float partialTick, PoseStack poseStack,
@@ -185,52 +166,21 @@ public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<Evok
 		poseStack.popPose();
 	}
 
-	private void prepareEvokerModel(RenderEvoker evoker, EvokerEnchantingChamberBlockEntity blockEntity,
+	private void prepareEvokerModel(EvokerEnchantingVisual.RenderEvoker evoker,
+		EvokerEnchantingChamberBlockEntity blockEntity,
 		float partialTick) {
 		boolean casting = blockEntity.isCastingSpell();
-		evoker.setCasting(casting);
-
-		ModelPart root = evokerModel.root();
-		root.getAllParts().forEach(ModelPart::resetPose);
 		float ageInTicks = blockEntity.getAnimationTime(partialTick);
-		evokerModel.setupAnim(evoker, 0.0f, 0.0f, ageInTicks, 0.0f, 0.0f);
-
-		ModelPart head = root.getChild("head");
-		ModelPart rightLeg = root.getChild("right_leg");
-		ModelPart leftLeg = root.getChild("left_leg");
-
-		head.xRot = HEAD_X_ROT;
-		rightLeg.xRot = RIGHT_LEG_X_ROT;
-		rightLeg.yRot = RIGHT_LEG_Y_ROT;
-		rightLeg.zRot = RIGHT_LEG_Z_ROT;
-		leftLeg.xRot = LEFT_LEG_X_ROT;
-		leftLeg.yRot = LEFT_LEG_Y_ROT;
-		leftLeg.zRot = LEFT_LEG_Z_ROT;
-
-		applyArmPose(root, casting);
+		EvokerEnchantingVisual.prepareModel(evokerModel, evoker, ageInTicks, casting);
 	}
 
-	private static void applyArmPose(ModelPart root, boolean casting) {
-		ModelPart rightArm = root.getChild("right_arm");
-		ModelPart leftArm = root.getChild("left_arm");
-
-		if (casting) {
-			rightArm.xRot = ARM_CAST_X_ROT;
-			leftArm.xRot = ARM_CAST_X_ROT;
-			rightArm.yRot = ARM_CAST_Y_ROT;
-			leftArm.yRot = -ARM_CAST_Y_ROT;
-			rightArm.zRot = ARM_RAISED_Z_ROT;
-			leftArm.zRot = -ARM_RAISED_Z_ROT;
-		}
-	}
-
-	private RenderEvoker getOrCreateEvoker(Level level) {
+	private EvokerEnchantingVisual.RenderEvoker getOrCreateEvoker(Level level) {
 		if (!(level instanceof ClientLevel clientLevel))
 			return null;
 
 		if (cachedEvoker == null || cachedLevel != clientLevel) {
 			cachedLevel = clientLevel;
-			cachedEvoker = new RenderEvoker(clientLevel);
+			cachedEvoker = new EvokerEnchantingVisual.RenderEvoker(clientLevel);
 			cachedEvoker.setNoAi(true);
 			cachedEvoker.setSilent(true);
 		}
@@ -242,16 +192,5 @@ public class EvokerEnchantingChamberRenderer implements BlockEntityRenderer<Evok
 		cachedEvoker.yHeadRotO = 0.0f;
 
 		return cachedEvoker;
-	}
-
-	private static class RenderEvoker extends Evoker {
-
-		private RenderEvoker(ClientLevel level) {
-			super(EntityType.EVOKER, level);
-		}
-
-		private void setCasting(boolean casting) {
-			setIsCastingSpell(casting ? SpellcasterIllager.IllagerSpell.FANGS : SpellcasterIllager.IllagerSpell.NONE);
-		}
 	}
 }

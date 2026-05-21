@@ -1,19 +1,15 @@
 package com.nobodiiiii.createbiotech.content.experience;
 
-import java.util.List;
-
 import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
 import com.simibubi.create.api.connectivity.ConnectivityHandler;
 import com.simibubi.create.content.equipment.symmetryWand.SymmetryWandItem;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -104,13 +100,5 @@ public class ExperienceTankItem extends BlockItem {
 					.remove("SilenceTankSound");
 			}
 		}
-	}
-
-	@Override
-	public void appendHoverText(ItemStack stack, Level level, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, level, tooltip, flag);
-		tooltip.add(Component.translatable("block.create_biotech.experience_tank.tooltip.capacity",
-			ExperienceConstants.TANK_CAPACITY_PER_BLOCK));
-		tooltip.add(Component.translatable("block.create_biotech.experience_tank.tooltip.io"));
 	}
 }

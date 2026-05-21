@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "B": {
+      "type": "create_biotech:captured_entity_box",
+      "entity": "minecraft:squid"
+    },
+    "S": {
+      "item": "create:spout"
+    }
+  },
+  "pattern": [
+    "BS"
+  ],
+  "result": {
+    "item": "create_biotech:squid_printer"
+  },
+  "show_notification": true
+}

@@ -3,8 +3,6 @@ package com.nobodiiiii.createbiotech.registry;
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.content.creeperblastchamber.CreeperBlastChamberHighPressureRecipe;
 import com.nobodiiiii.createbiotech.content.processing.basin.BasinEntityProcessingRecipe;
-import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatRecipe;
-import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableRecipe;
 import com.nobodiiiii.createbiotech.content.squidprinter.SquidPrinterRecipe;
 import com.simibubi.create.content.processing.recipe.ProcessingRecipeSerializer;
 
@@ -25,14 +23,6 @@ public class CBRecipeTypes {
 	public static final RegistryObject<RecipeSerializer<BasinEntityProcessingRecipe>>
 		BASIN_ENTITY_PROCESSING_SERIALIZER = RECIPE_SERIALIZERS.register("basin_entity_processing",
 			BasinEntityProcessingRecipe.Serializer::new);
-
-	public static final RegistryObject<RecipeSerializer<SchrodingersCatRecipe>>
-		SCHRODINGERS_CAT_SERIALIZER = RECIPE_SERIALIZERS.register("schrodingers_cat",
-			SchrodingersCatRecipe.Serializer::new);
-
-	public static final RegistryObject<RecipeSerializer<SpiderAssemblyTableRecipe>>
-		SPIDER_ASSEMBLY_TABLE_SERIALIZER = RECIPE_SERIALIZERS.register("spider_assembly_table",
-			SpiderAssemblyTableRecipe.Serializer::new);
 
 	public static final RegistryObject<RecipeSerializer<CreeperBlastChamberHighPressureRecipe>>
 		CREEPER_BLAST_CHAMBER_HIGH_PRESSURE_SERIALIZER =

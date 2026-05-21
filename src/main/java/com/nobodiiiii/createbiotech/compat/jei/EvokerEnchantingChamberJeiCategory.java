@@ -2,6 +2,7 @@ package com.nobodiiiii.createbiotech.compat.jei;
 
 import com.nobodiiiii.createbiotech.CreateBiotech;
 import com.nobodiiiii.createbiotech.registry.CBBlocks;
+import com.nobodiiiii.createbiotech.registry.CBItems;
 import com.simibubi.create.compat.jei.category.CreateRecipeCategory;
 import com.simibubi.create.foundation.gui.AllGuiTextures;
 
@@ -26,13 +27,13 @@ public class EvokerEnchantingChamberJeiCategory extends AbstractRecipeCategory<E
 	private static final int WIDTH = 177;
 	private static final int HEIGHT = 70;
 	private static final int INPUT_X = 27;
-	private static final int INPUT_Y = 28;
+	private static final int INPUT_Y = 51;
 	private static final int OUTPUT_X = 132;
-	private static final int OUTPUT_Y = 28;
-	private static final int ARROW_X = 52;
-	private static final int ARROW_Y = 31;
-	private static final int CATALYST_X = 76;
-	private static final int CATALYST_Y = 4;
+	private static final int OUTPUT_Y = 51;
+	private static final int CATALYST_X = 51;
+	private static final int CATALYST_Y = 5;
+
+	private final AnimatedEvokerEnchanting enchanting = new AnimatedEvokerEnchanting();
 
 	public EvokerEnchantingChamberJeiCategory() {
 		super(TYPE, Component.translatable("block.create_biotech.evoker_enchanting_chamber"),
@@ -43,7 +44,10 @@ public class EvokerEnchantingChamberJeiCategory extends AbstractRecipeCategory<E
 	public void setRecipe(IRecipeLayoutBuilder builder, EvokerEnchantingChamberJeiRecipe recipe, IFocusGroup focuses) {
 		builder.addSlot(RecipeIngredientRole.CATALYST, CATALYST_X, CATALYST_Y)
 			.setBackground(CreateRecipeCategory.getRenderedSlot(), -1, -1)
-			.addItemStack(new ItemStack(CBBlocks.EVOKER_ENCHANTING_CHAMBER.get()));
+			.addItemStack(new ItemStack(CBItems.EXPERIENCE.get()))
+			.addRichTooltipCallback((view, tooltip) -> tooltip.add(
+				Component.translatable("create_biotech.jei.evoker_enchanting_chamber.note.experience")
+					.withStyle(ChatFormatting.GRAY)));
 
 		builder.addSlot(RecipeIngredientRole.INPUT, INPUT_X, INPUT_Y)
 			.setBackground(CreateRecipeCategory.getRenderedSlot(), -1, -1)
@@ -57,7 +61,10 @@ public class EvokerEnchantingChamberJeiCategory extends AbstractRecipeCategory<E
 	@Override
 	public void draw(EvokerEnchantingChamberJeiRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics graphics,
 		double mouseX, double mouseY) {
-		AllGuiTextures.JEI_LONG_ARROW.render(graphics, ARROW_X, ARROW_Y);
+		AllGuiTextures.JEI_SHADOW.render(graphics, 62, 57);
+		AllGuiTextures.JEI_DOWN_ARROW.render(graphics, 126, 29);
+		enchanting.withRecipe(recipe)
+			.draw(graphics, WIDTH / 2 - 13, 22);
 	}
 
 	@Override

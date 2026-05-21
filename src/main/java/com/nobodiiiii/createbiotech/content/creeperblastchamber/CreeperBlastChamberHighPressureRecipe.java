@@ -3,13 +3,11 @@ package com.nobodiiiii.createbiotech.content.creeperblastchamber;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonSyntaxException;
-import com.nobodiiiii.createbiotech.content.cardboardbox.CapturedEntityBoxRecipeHelper;
+import com.nobodiiiii.createbiotech.content.cardboardbox.CapturedEntityBoxIngredient;
 import com.nobodiiiii.createbiotech.registry.CBRecipeTypes;
 import com.simibubi.create.content.processing.recipe.HeatCondition;
 import com.simibubi.create.content.processing.recipe.ProcessingOutput;
@@ -55,8 +53,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 
 	private static final RandomSource RANDOM = RandomSource.create();
 
-	@Nullable
-	private EntityType<?> capturedEntityType;
 	private final List<ResultCountRange> resultCountRanges = new ArrayList<>();
 
 	public CreeperBlastChamberHighPressureRecipe(ProcessingRecipeParams params) {
@@ -69,9 +65,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 			return false;
 
 		ItemStack stack = inv.getItem(0);
-		if (capturedEntityType != null)
-			return CapturedEntityBoxRecipeHelper.matchesCapturedEntity(stack, capturedEntityType);
-
 		return !ingredients.isEmpty() && ingredients.get(0).test(stack);
 	}
 
@@ -120,15 +113,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 
 	@Override
 	public void readAdditional(JsonObject json) {
-		capturedEntityType = null;
-		if (GsonHelper.isValidNode(json, "captured_entity")) {
-			ResourceLocation entityId = new ResourceLocation(GsonHelper.getAsString(json, "captured_entity"));
-			capturedEntityType = ForgeRegistries.ENTITY_TYPES.getValue(entityId);
-			if (capturedEntityType == null)
-				throw new JsonSyntaxException("Unknown captured_entity: " + entityId);
-			ingredients = NonNullList.of(Ingredient.EMPTY, CapturedEntityBoxRecipeHelper.displayIngredient(capturedEntityType));
-		}
-
 		resultCountRanges.clear();
 		JsonArray resultsJson = GsonHelper.getAsJsonArray(json, "results");
 		for (JsonElement resultElement : resultsJson) {
@@ -151,12 +135,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 
 	@Override
 	public void writeAdditional(JsonObject json) {
-		if (capturedEntityType != null) {
-			ResourceLocation entityId = ForgeRegistries.ENTITY_TYPES.getKey(capturedEntityType);
-			if (entityId != null)
-				json.addProperty("captured_entity", entityId.toString());
-		}
-
 		if (!json.has("results"))
 			return;
 
@@ -176,14 +154,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 
 	@Override
 	public void readAdditional(FriendlyByteBuf buffer) {
-		capturedEntityType = null;
-		if (buffer.readBoolean()) {
-			ResourceLocation entityId = buffer.readResourceLocation();
-			capturedEntityType = ForgeRegistries.ENTITY_TYPES.getValue(entityId);
-			if (capturedEntityType != null)
-				ingredients = NonNullList.of(Ingredient.EMPTY, CapturedEntityBoxRecipeHelper.displayIngredient(capturedEntityType));
-		}
-
 		resultCountRanges.clear();
 		int rangeCount = buffer.readVarInt();
 		for (int i = 0; i < rangeCount; i++) {
@@ -197,11 +167,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 
 	@Override
 	public void writeAdditional(FriendlyByteBuf buffer) {
-		ResourceLocation entityId = capturedEntityType == null ? null : ForgeRegistries.ENTITY_TYPES.getKey(capturedEntityType);
-		buffer.writeBoolean(entityId != null);
-		if (entityId != null)
-			buffer.writeResourceLocation(entityId);
-
 		buffer.writeVarInt(results.size());
 		for (int i = 0; i < results.size(); i++) {
 			ResultCountRange range = getResultCountRange(i);
@@ -213,7 +178,6 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 		}
 	}
 
-	@Nullable
 	public ResultCountRange getResultCountRange(int index) {
 		return index >= 0 && index < resultCountRanges.size() ? resultCountRanges.get(index) : null;
 	}
@@ -241,7 +205,11 @@ public class CreeperBlastChamberHighPressureRecipe extends ProcessingRecipe<Reci
 						ingredients.add(Ingredient.fromJson(ingredientElement));
 				}
 			} else if (GsonHelper.isValidNode(json, "captured_entity")) {
-				ingredients.add(CapturedEntityBoxRecipeHelper.anyBoxIngredient());
+				ResourceLocation entityId = new ResourceLocation(GsonHelper.getAsString(json, "captured_entity"));
+				EntityType<?> entityType = ForgeRegistries.ENTITY_TYPES.getValue(entityId);
+				if (entityType == null)
+					throw new JsonSyntaxException("Unknown captured_entity: " + entityId);
+				ingredients.add(CapturedEntityBoxIngredient.of(entityType));
 			} else {
 				throw new JsonSyntaxException("High-pressure implosion recipes require either ingredients or captured_entity");
 			}

@@ -53,17 +53,21 @@ import com.simibubi.create.content.kinetics.simpleRelays.encased.EncasedCogVisua
 import com.simibubi.create.content.kinetics.transmission.SplitShaftVisual;
 import com.simibubi.create.foundation.block.connected.CTModel;
 import com.simibubi.create.foundation.block.connected.SimpleCTBehaviour;
+import com.simibubi.create.foundation.item.ItemDescription;
+import com.simibubi.create.foundation.item.TooltipModifier;
 
 import dev.engine_room.flywheel.lib.model.Models;
 import dev.engine_room.flywheel.lib.visualization.SimpleBlockEntityVisualizer;
 import dev.engine_room.flywheel.lib.visualization.SimpleEntityVisualizer;
 
+import net.createmod.catnip.lang.FontHelper;
 import net.createmod.ponder.foundation.PonderIndex;
 
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;
@@ -159,6 +163,7 @@ public class CreateBiotechClient {
 	@SubscribeEvent
 	public static void onClientSetup(FMLClientSetupEvent event) {
 		event.enqueueWork(() -> {
+			registerItemTooltips();
 			PonderIndex.addPlugin(new CreateBiotechPonderPlugin());
 			SimpleEntityVisualizer.<GhastHotAirBalloonEntity>builder(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get())
 				.factory(ContraptionVisual::new)
@@ -230,5 +235,24 @@ public class CreateBiotechClient {
 				ItemProperties.register(CBItems.CAPTURED_SMALL_SLIME.get(),
 					CreateBiotech.asResource("jei_slime_model"), (stack, level, entity, seed) -> 1);
 		});
+	}
+
+	private static void registerItemTooltips() {
+		ItemDescription.useKey(CBItems.SMALL_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
+		ItemDescription.useKey(CBItems.MEDIUM_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
+		ItemDescription.useKey(CBItems.LARGE_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
+
+		registerCreateStyleTooltip(CBItems.BUDDING_EXPERIENCE.get());
+		registerCreateStyleTooltip(CBItems.SMALL_EXPERIENCE_BUD.get());
+		registerCreateStyleTooltip(CBItems.MEDIUM_EXPERIENCE_BUD.get());
+		registerCreateStyleTooltip(CBItems.LARGE_EXPERIENCE_BUD.get());
+		registerCreateStyleTooltip(CBItems.EXPERIENCE_CLUSTER.get());
+		registerCreateStyleTooltip(CBItems.EXPERIENCE_TANK.get());
+		registerCreateStyleTooltip(CBItems.FIXED_CARROT_FISHING_ROD.get());
+	}
+
+	private static void registerCreateStyleTooltip(Item item) {
+		TooltipModifier.REGISTRY.register(item,
+			new ItemDescription.Modifier(item, FontHelper.Palette.STANDARD_CREATE));
 	}
 }
