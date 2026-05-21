@@ -241,6 +241,8 @@ public class CreateBiotechClient {
 		ItemDescription.useKey(CBItems.SMALL_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
 		ItemDescription.useKey(CBItems.MEDIUM_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
 		ItemDescription.useKey(CBItems.LARGE_EXPERIENCE_BUD.get(), "block.create_biotech.experience_bud");
+		CBItems.BUFFER_PADS.values()
+			.forEach(entry -> ItemDescription.useKey(entry.get(), "block.create_biotech.buffer_pad"));
 
 		registerCreateStyleTooltip(CBItems.BUDDING_EXPERIENCE.get());
 		registerCreateStyleTooltip(CBItems.SMALL_EXPERIENCE_BUD.get());
@@ -249,6 +251,8 @@ public class CreateBiotechClient {
 		registerCreateStyleTooltip(CBItems.EXPERIENCE_CLUSTER.get());
 		registerCreateStyleTooltip(CBItems.EXPERIENCE_TANK.get());
 		registerCreateStyleTooltip(CBItems.FIXED_CARROT_FISHING_ROD.get());
+		CBItems.BUFFER_PADS.values()
+			.forEach(entry -> registerCreateStyleTooltip(entry.get()));
 	}
 
 	private static void registerCreateStyleTooltip(Item item) {

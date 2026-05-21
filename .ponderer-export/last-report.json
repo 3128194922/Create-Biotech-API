@@ -1,0 +1,33 @@
+{
+  "loader": "forge",
+  "modId": "create_biotech",
+  "basePackage": "com.nobodiiiii.createbiotech",
+  "targetRoot": "D:\\Files\\create_biotech",
+  "fatalFindings": [],
+  "sceneUnsupportedFindings": [],
+  "warningFindings": [],
+  "ignoredFindings": [],
+  "sceneOutcomes": [
+    {
+      "sceneId": "ponderer:creeper_blast_chamber",
+      "sceneKey": "ponderer:creeper_blast_chamber",
+      "className": "GeneratedCreeperBlastChamber_685cd207",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 5,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedCreeperBlastChamber_685cd207.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/basic_xl.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber_xs.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber_s.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/powered_bomber.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/128bomber.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/256bomber.nbt"
+      ],
+      "messages": []
+    }
+  ]
+}

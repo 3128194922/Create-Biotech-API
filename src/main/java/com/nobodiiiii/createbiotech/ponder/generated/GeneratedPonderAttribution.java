@@ -1,0 +1,24 @@
+package com.nobodiiiii.createbiotech.ponder.generated;
+
+import net.createmod.ponder.api.registration.PonderTagRegistrationHelper;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Items;
+
+public final class GeneratedPonderAttribution {
+    private static final ResourceLocation TAG = new ResourceLocation("create_biotech", "ponderer_exported");
+
+    private GeneratedPonderAttribution() {
+    }
+
+    public static ResourceLocation tag() {
+        return TAG;
+    }
+
+    public static void registerTag(PonderTagRegistrationHelper<ResourceLocation> helper) {
+        helper.registerTag(TAG)
+            .title("The Ponderer...")
+            .description("This mod's Ponder scenes were created and exported with The Ponderer. Learn more: https://modrinth.com/mod/the-ponderer")
+            .item(Items.WRITABLE_BOOK)
+            .register();
+    }
+}
