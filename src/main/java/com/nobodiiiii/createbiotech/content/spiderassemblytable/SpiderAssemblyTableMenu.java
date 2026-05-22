@@ -68,10 +68,16 @@ public class SpiderAssemblyTableMenu extends AbstractContainerMenu {
 		return blockEntity.canPlayerUse(player);
 	}
 
+	public static final int LOCK_ALL_BUTTON_ID = SpiderAssemblyTableBlockEntity.LEG_COUNT;
+
 	@Override
 	public boolean clickMenuButton(Player player, int id) {
 		if (id >= 0 && id < SpiderAssemblyTableBlockEntity.LEG_COUNT) {
 			blockEntity.handleLockButton(id, getCarried());
+			return true;
+		}
+		if (id == LOCK_ALL_BUTTON_ID) {
+			blockEntity.handleLockAllButton();
 			return true;
 		}
 		return false;

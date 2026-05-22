@@ -299,6 +299,13 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 		return !itemLocks[hybridIndex].isEmpty() || !fluidLocks[hybridIndex].isEmpty() || slotBlocked[hybridIndex];
 	}
 
+	public boolean areAllHybridSlotsLocked() {
+		for (int i = 0; i < LEG_COUNT; i++)
+			if (!isHybridSlotLocked(i))
+				return false;
+		return true;
+	}
+
 	public boolean isHybridSlotBlocked(int hybridIndex) {
 		return slotBlocked[hybridIndex];
 	}
@@ -388,6 +395,45 @@ public class SpiderAssemblyTableBlockEntity extends KineticBlockEntity implement
 				} else {
 					slotBlocked[hybridIndex] = true;
 				}
+			}
+		}
+
+		setChanged();
+		sendData();
+	}
+
+	public void handleLockAllButton() {
+		boolean anyUnlocked = false;
+		for (int i = 0; i < LEG_COUNT; i++) {
+			if (!isHybridSlotLocked(i)) {
+				anyUnlocked = true;
+				break;
+			}
+		}
+
+		if (anyUnlocked) {
+			for (int i = 0; i < LEG_COUNT; i++) {
+				if (isHybridSlotLocked(i))
+					continue;
+				ItemStack slotItem = inventory.getStackInSlot(HYBRID_SLOT_START + i);
+				FluidStack slotFluid = fluidTanks[i].getFluid();
+				if (!slotItem.isEmpty()) {
+					ItemStack lock = slotItem.copy();
+					lock.setCount(1);
+					itemLocks[i] = lock;
+				} else if (!slotFluid.isEmpty()) {
+					FluidStack lock = slotFluid.copy();
+					lock.setAmount(1);
+					fluidLocks[i] = lock;
+				} else {
+					slotBlocked[i] = true;
+				}
+			}
+		} else {
+			for (int i = 0; i < LEG_COUNT; i++) {
+				itemLocks[i] = ItemStack.EMPTY;
+				fluidLocks[i] = FluidStack.EMPTY;
+				slotBlocked[i] = false;
 			}
 		}
 

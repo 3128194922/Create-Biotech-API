@@ -196,6 +196,7 @@ public class SpiderAssemblyTableRenderer extends KineticBlockEntityRenderer<Spid
 			ms.pushPose();
 			ms.translate(tipMx / 16f, tipMy / 16f, tipMz / 16f);
 			ms.mulPose(orientation);
+			ms.mulPose(Axis.YP.rotationDegrees(180f));
 			renderJointGear(ms, buffer, light);
 			ms.scale(MACHINE_SCALE, MACHINE_SCALE, MACHINE_SCALE);
 

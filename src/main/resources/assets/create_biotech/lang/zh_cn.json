@@ -92,6 +92,7 @@
   "block.create_biotech.schrodingers_cat": "薛定谔的猫",
   "block.create_biotech.spider_assembly_table": "蜘蛛装配台",
   "block.create_biotech.spider_assembly_table_cog": "蜘蛛装配台尾齿轮",
+  "gui.create_biotech.spider_assembly_table.lock_all": "一键锁定/解锁所有槽位",
   "create_biotech.schrodingers_cat.interval.label": "检测间隔",
   "create_biotech.schrodingers_cat.output_mode.label": "输出模式",
   "create_biotech.schrodingers_cat.output_mode.sustained": "持续信号",

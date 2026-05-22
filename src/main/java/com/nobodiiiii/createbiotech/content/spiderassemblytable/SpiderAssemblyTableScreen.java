@@ -64,6 +64,21 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 			addRenderableWidget(button);
 		}
 
+		IconButton lockAllButton =
+			new LockAllIconButton(leftPos + 7, topPos + BG_HEIGHT - 24);
+		lockAllButton.withCallback(() -> Minecraft.getInstance().gameMode
+			.handleInventoryButtonClick(menu.containerId, SpiderAssemblyTableMenu.LOCK_ALL_BUTTON_ID));
+		lockAllButton.setToolTip(Component.translatable("gui.create_biotech.spider_assembly_table.lock_all"));
+		addRenderableWidget(lockAllButton);
+
+		IconButton confirmButton =
+			new IconButton(leftPos + BG_WIDTH - 25, topPos + BG_HEIGHT - 24, AllIcons.I_CONFIRM);
+		confirmButton.withCallback(() -> {
+			if (minecraft != null && minecraft.player != null)
+				minecraft.player.closeContainer();
+		});
+		addRenderableWidget(confirmButton);
+
 		extraAreas = ImmutableList.of(new Rect2i(leftPos + BG_WIDTH, topPos + BG_HEIGHT - 56, 64, 56));
 	}
 
@@ -238,6 +253,19 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 		public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
 			boolean locked = menu.getBlockEntity().isHybridSlotLocked(hybridIndex);
 			setIcon(locked ? LOCKED_ICON_YELLOW : AllIcons.I_CONFIG_UNLOCKED);
+			super.doRender(graphics, mouseX, mouseY, partialTicks);
+		}
+	}
+
+	private class LockAllIconButton extends IconButton {
+		LockAllIconButton(int x, int y) {
+			super(x, y, AllIcons.I_CONFIG_UNLOCKED);
+		}
+
+		@Override
+		public void doRender(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+			boolean allLocked = menu.getBlockEntity().areAllHybridSlotsLocked();
+			setIcon(allLocked ? AllIcons.I_CONFIG_LOCKED : AllIcons.I_CONFIG_UNLOCKED);
 			super.doRender(graphics, mouseX, mouseY, partialTicks);
 		}
 	}

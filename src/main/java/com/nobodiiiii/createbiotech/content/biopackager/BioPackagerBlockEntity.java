@@ -98,6 +98,8 @@ public class BioPackagerBlockEntity extends SmartBlockEntity {
 	private void attemptAutoExtract() {
 		if (targetInventory == null)
 			return;
+		if (isReleaseBlocked())
+			return;
 		IItemHandler inv = targetInventory.getInventory();
 		if (inv == null || inv instanceof BioPackagerItemHandler)
 			return;
@@ -116,6 +118,8 @@ public class BioPackagerBlockEntity extends SmartBlockEntity {
 	public boolean startUnpacking(ItemStack box) {
 		if (!heldBox.isEmpty() || animationTicks > 0 || !isRedstonePowered())
 			return false;
+		if (isReleaseBlocked())
+			return false;
 		heldBox = box.copy();
 		previouslyUnwrapped = ItemStack.EMPTY;
 		animationInward = false;
@@ -125,8 +129,18 @@ public class BioPackagerBlockEntity extends SmartBlockEntity {
 		return true;
 	}
 
+	public boolean isReleaseBlocked() {
+		if (level == null)
+			return false;
+		BlockPos releasePos = worldPosition.above();
+		BlockState state = level.getBlockState(releasePos);
+		return !state.getCollisionShape(level, releasePos).isEmpty();
+	}
+
 	private void releaseCapturedEntityForReturn() {
 		if (heldBox.isEmpty() || !CapturedEntityBoxHelper.hasCapturedEntity(heldBox))
+			return;
+		if (isReleaseBlocked())
 			return;
 
 		Entity entity = createEntityFromBox(heldBox);
