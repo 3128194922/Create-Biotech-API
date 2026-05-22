@@ -67,6 +67,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
+import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -326,6 +327,30 @@ public class MagmaBeltBlock extends HorizontalKineticBlock
 			return InteractionResult.SUCCESS;
 		}
 
+		if (AllBlocks.BRASS_CASING.isIn(heldItem)) {
+			withBlockEntityDo(world, pos, be -> be.setCasingType(CasingType.BRASS));
+			updateCoverProperty(world, pos, world.getBlockState(pos));
+
+			SoundType soundType = AllBlocks.BRASS_CASING.getDefaultState()
+				.getSoundType(world, pos, player);
+			world.playSound(null, pos, soundType.getPlaceSound(), SoundSource.BLOCKS,
+				(soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F);
+
+			return InteractionResult.SUCCESS;
+		}
+
+		if (AllBlocks.ANDESITE_CASING.isIn(heldItem)) {
+			withBlockEntityDo(world, pos, be -> be.setCasingType(CasingType.ANDESITE));
+			updateCoverProperty(world, pos, world.getBlockState(pos));
+
+			SoundType soundType = AllBlocks.ANDESITE_CASING.getDefaultState()
+				.getSoundType(world, pos, player);
+			world.playSound(null, pos, soundType.getPlaceSound(), SoundSource.BLOCKS,
+				(soundType.getVolume() + 1.0F) / 2.0F, soundType.getPitch() * 0.8F);
+
+			return InteractionResult.SUCCESS;
+		}
+
 		return InteractionResult.PASS;
 	}
 
@@ -339,7 +364,6 @@ public class MagmaBeltBlock extends HorizontalKineticBlock
 			if (world.isClientSide)
 				return InteractionResult.SUCCESS;
 			withBlockEntityDo(world, pos, be -> be.setCasingType(CasingType.NONE));
-			KineticBlockEntity.switchToBlockState(world, pos, state.setValue(CASING, false));
 			return InteractionResult.SUCCESS;
 		}
 
@@ -399,7 +423,7 @@ public class MagmaBeltBlock extends HorizontalKineticBlock
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		return state.getValue(CASING) ? RenderShape.MODEL : RenderShape.ENTITYBLOCK_ANIMATED;
 	}
 
 	public static void initBelt(Level world, BlockPos pos) {
@@ -515,8 +539,8 @@ public class MagmaBeltBlock extends HorizontalKineticBlock
 	public void updateCoverProperty(LevelAccessor world, BlockPos pos, BlockState state) {
 		if (world.isClientSide())
 			return;
-		if (state.getValue(CASING))
-			world.setBlock(pos, state.setValue(CASING, false), 3);
+		if (state.getValue(CASING) && state.getValue(SLOPE) == BeltSlope.HORIZONTAL)
+			withBlockEntityDo(world, pos, bbe -> bbe.setCovered(isBlockCoveringBelt(world, pos.above())));
 	}
 
 	public static boolean isBlockCoveringBelt(LevelAccessor world, BlockPos pos) {

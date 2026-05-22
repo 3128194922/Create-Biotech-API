@@ -245,11 +245,14 @@ public class CreateBiotechClient {
 			.forEach(entry -> ItemDescription.useKey(entry.get(), "block.create_biotech.buffer_pad"));
 
 		registerCreateStyleTooltip(CBItems.BUDDING_EXPERIENCE.get());
+		registerCreateStyleTooltip(CBItems.EXPERIENCE_CRYSTALLIZER.get());
 		registerCreateStyleTooltip(CBItems.SMALL_EXPERIENCE_BUD.get());
 		registerCreateStyleTooltip(CBItems.MEDIUM_EXPERIENCE_BUD.get());
 		registerCreateStyleTooltip(CBItems.LARGE_EXPERIENCE_BUD.get());
 		registerCreateStyleTooltip(CBItems.EXPERIENCE_CLUSTER.get());
 		registerCreateStyleTooltip(CBItems.EXPERIENCE_TANK.get());
+		registerCreateStyleTooltip(CBItems.CARDBOARD_BOX.get());
+		registerCreateStyleTooltip(CBItems.LARGE_CARDBOARD_BOX.get());
 		registerCreateStyleTooltip(CBItems.FIXED_CARROT_FISHING_ROD.get());
 		CBItems.BUFFER_PADS.values()
 			.forEach(entry -> registerCreateStyleTooltip(entry.get()));
