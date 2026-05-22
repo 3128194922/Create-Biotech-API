@@ -93,6 +93,193 @@
           "create_biotech.ponder.creeper_blast_chamber_s_a77f7.text_4": "当然，过载引起的爆炸烈度也会成倍增加"
         }
       }
+    },
+    "ponderer:bone_ratchet": {
+      "sceneId": "ponderer:bone_ratchet",
+      "sceneKey": "ponderer:bone_ratchet",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedBoneRatchet_a2661e15",
+      "status": "COMPLETE",
+      "contentHash": "48e64a660ab0481ca6f62732cf61c5e5dfdc42e29c26c01fc86b1343f08409b7",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedBoneRatchet_a2661e15.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bone1.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bone2.nbt"
+      ],
+      "langEntries": {
+        "en_us": {
+          "create_biotech.ponder.bone_ratchet.header": "Scene 1",
+          "create_biotech.ponder.bone_ratchet.text_1": "骨质棘轮只接受一种方向的旋转",
+          "create_biotech.ponder.bone_ratchet.text_2": "接受反方向应力时，他会卡死整个应力网络"
+        },
+        "zh_cn": {
+          "create_biotech.ponder.bone_ratchet.header": "场景 1",
+          "create_biotech.ponder.bone_ratchet.text_1": "骨质棘轮只接受一种方向的旋转",
+          "create_biotech.ponder.bone_ratchet.text_2": "接受反方向应力时，他会卡死整个应力网络"
+        }
+      }
+    },
+    "ponderer:evoker_enchanting_chamber": {
+      "sceneId": "ponderer:evoker_enchanting_chamber",
+      "sceneKey": "ponderer:evoker_enchanting_chamber",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedEvokerEnchantingChamber_fcd0c16f",
+      "status": "COMPLETE",
+      "contentHash": "95aea46b9c21054e163b15f79aea0c45d98749770c6b74457016520bc673acd6",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedEvokerEnchantingChamber_fcd0c16f.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "langEntries": {
+        "en_us": {
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.header": "Scene 1",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_1": "这是一个简单的附魔流水线",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_2": "这是鱿鱼打印机",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_3": "在侧面标记一本附魔书...",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_4": "它会将下方的书加工为附魔书（复印本）",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_5": "无论是否在工作，打印机都需要输入水来保证鱿鱼存活",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.header": "唤魔者附魔室",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_1": "这是唤魔者附魔室",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_2": "它可以将附魔书（复印本）附魔为可以使用的附魔书",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_3": "通过经验泵向其输送附魔所需要的经验",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_4": "附魔书的总等级越高，所需的经验越多，时间越长"
+        },
+        "zh_cn": {
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.header": "鱿鱼打印机",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_1": "这是一个简单的附魔流水线",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_2": "这是鱿鱼打印机",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_3": "在侧面标记一本附魔书...",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_4": "它会将下方的书加工为附魔书（复印本）",
+          "create_biotech.ponder.evoker_enchanting_chamber_scene_1.text_5": "无论是否在工作，打印机都需要输入水来保证鱿鱼存活",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.header": "唤魔者附魔室",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_1": "这是唤魔者附魔室",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_2": "它可以将附魔书（复印本）附魔为可以使用的附魔书",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_3": "通过经验泵向其输送附魔所需要的经验",
+          "create_biotech.ponder.evoker_enchanting_chamber_s_8911d.text_4": "附魔书的总等级越高，所需的经验越多，时间越长"
+        }
+      }
+    },
+    "ponderer:magma_belt_connector": {
+      "sceneId": "ponderer:magma_belt_connector",
+      "sceneKey": "ponderer:magma_belt_connector",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedMagmaBeltConnector_bce67acc",
+      "status": "COMPLETE",
+      "contentHash": "56a4d6d5c19eb7978e4e57db1d10478b08eb590c2482a8e3d261e4f30e7d1b85",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedMagmaBeltConnector_bce67acc.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "langEntries": {
+        "en_us": {
+          "create_biotech.ponder.magma_belt_connector.header": "Scene 1",
+          "create_biotech.ponder.magma_belt_connector.text_1": "使用鼓风机烧炼物品比较占空间",
+          "create_biotech.ponder.magma_belt_connector.text_2": "使用岩浆怪传送带",
+          "create_biotech.ponder.magma_belt_connector.text_3": "它会自动烧炼其上方的物品，所需时间与鼓风机相同",
+          "create_biotech.ponder.magma_belt_connector.text_4": "它没有鼓风机的烧炼保护，记得在它被第二次燃烧前把它取走！"
+        },
+        "zh_cn": {
+          "create_biotech.ponder.magma_belt_connector.header": "岩浆怪传送带",
+          "create_biotech.ponder.magma_belt_connector.text_1": "使用鼓风机烧炼物品比较占空间",
+          "create_biotech.ponder.magma_belt_connector.text_2": "使用岩浆怪传送带",
+          "create_biotech.ponder.magma_belt_connector.text_3": "它会自动烧炼其上方的物品，所需时间与鼓风机相同",
+          "create_biotech.ponder.magma_belt_connector.text_4": "它没有鼓风机的烧炼保护，记得在它被第二次燃烧前把它取走！"
+        }
+      }
+    },
+    "ponderer:slime_clutch": {
+      "sceneId": "ponderer:slime_clutch",
+      "sceneKey": "ponderer:slime_clutch",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedSlimeClutch_7a6c2b57",
+      "status": "COMPLETE",
+      "contentHash": "2a2413c91c674cb64543b35c96e53ee195d08101dc10b9d5da98c45386840ed1",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedSlimeClutch_7a6c2b57.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/slime2.nbt"
+      ],
+      "langEntries": {
+        "en_us": {
+          "create_biotech.ponder.slime_clutch.header": "Scene 1",
+          "create_biotech.ponder.slime_clutch.text_1": "史莱姆离合器会在输入应力不支持驱动整个应力网络时自动断开，而不影响网络的其他部分",
+          "create_biotech.ponder.slime_clutch.text_2": "并在应力充足时自动恢复"
+        },
+        "zh_cn": {
+          "create_biotech.ponder.slime_clutch.header": "场景 1",
+          "create_biotech.ponder.slime_clutch.text_1": "史莱姆离合器会在输入应力不支持驱动整个应力网络时自动断开，而不影响网络的其他部分",
+          "create_biotech.ponder.slime_clutch.text_2": "并在应力充足时自动恢复"
+        }
+      }
+    },
+    "ponderer:squid_printer": {
+      "sceneId": "ponderer:squid_printer",
+      "sceneKey": "ponderer:squid_printer",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedSquidPrinter_68898fcb",
+      "status": "COMPLETE",
+      "contentHash": "10f52e9054664e29d669609f4e08630be3d0dce934a289eff1312de42b98003a",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedSquidPrinter_68898fcb.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "langEntries": {
+        "en_us": {
+          "create_biotech.ponder.squid_printer_scene_1.header": "Scene 1",
+          "create_biotech.ponder.squid_printer_scene_1.text_1": "这是一个简单的附魔流水线",
+          "create_biotech.ponder.squid_printer_scene_1.text_2": "这是鱿鱼打印机",
+          "create_biotech.ponder.squid_printer_scene_1.text_3": "在侧面标记一本附魔书...",
+          "create_biotech.ponder.squid_printer_scene_1.text_4": "它会将下方的书加工为附魔书（复印本）",
+          "create_biotech.ponder.squid_printer_scene_1.text_5": "无论是否在工作，打印机都需要输入水来保证鱿鱼存活",
+          "create_biotech.ponder.squid_printer_s_8911d.header": "唤魔者附魔室",
+          "create_biotech.ponder.squid_printer_s_8911d.text_1": "这是唤魔者附魔室",
+          "create_biotech.ponder.squid_printer_s_8911d.text_2": "它可以将附魔书（复印本）附魔为可以使用的附魔书",
+          "create_biotech.ponder.squid_printer_s_8911d.text_3": "通过经验泵向其输送附魔所需要的经验",
+          "create_biotech.ponder.squid_printer_s_8911d.text_4": "附魔书的总等级越高，所需的经验越多，时间越长"
+        },
+        "zh_cn": {
+          "create_biotech.ponder.squid_printer_scene_1.header": "鱿鱼打印机",
+          "create_biotech.ponder.squid_printer_scene_1.text_1": "这是一个简单的附魔流水线",
+          "create_biotech.ponder.squid_printer_scene_1.text_2": "这是鱿鱼打印机",
+          "create_biotech.ponder.squid_printer_scene_1.text_3": "在侧面标记一本附魔书...",
+          "create_biotech.ponder.squid_printer_scene_1.text_4": "它会将下方的书加工为附魔书（复印本）",
+          "create_biotech.ponder.squid_printer_scene_1.text_5": "无论是否在工作，打印机都需要输入水来保证鱿鱼存活",
+          "create_biotech.ponder.squid_printer_s_8911d.header": "唤魔者附魔室",
+          "create_biotech.ponder.squid_printer_s_8911d.text_1": "这是唤魔者附魔室",
+          "create_biotech.ponder.squid_printer_s_8911d.text_2": "它可以将附魔书（复印本）附魔为可以使用的附魔书",
+          "create_biotech.ponder.squid_printer_s_8911d.text_3": "通过经验泵向其输送附魔所需要的经验",
+          "create_biotech.ponder.squid_printer_s_8911d.text_4": "附魔书的总等级越高，所需的经验越多，时间越长"
+        }
+      }
+    },
+    "ponderer:universal_joint": {
+      "sceneId": "ponderer:universal_joint",
+      "sceneKey": "ponderer:universal_joint",
+      "className": "com.nobodiiiii.createbiotech.ponder.generated.scenes.GeneratedUniversalJoint_09ad9873",
+      "status": "COMPLETE",
+      "contentHash": "acb73aaaebf4874d404ef0c1e9fe71a79594c4ea53edc6904bea839135f91d70",
+      "javaFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedUniversalJoint_09ad9873.java"
+      ],
+      "resourceFiles": [
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/slime1.nbt"
+      ],
+      "langEntries": {
+        "zh_cn": {
+          "create_biotech.ponder.universal_joint.header": "场景 1",
+          "create_biotech.ponder.universal_joint.text_1": "史莱姆万向节可以在相近的任意两个点之间传播应力",
+          "create_biotech.ponder.universal_joint.text_2": "以一个节点为中心，另一个节点需要在5×5×5范围内"
+        },
+        "en_us": {
+          "create_biotech.ponder.universal_joint.header": "Scene 1",
+          "create_biotech.ponder.universal_joint.text_1": "史莱姆万向节可以在相近的任意两个点之间传播应力",
+          "create_biotech.ponder.universal_joint.text_2": "以一个节点为中心，另一个节点需要在5×5×5范围内"
+        }
+      }
     }
   }
 }

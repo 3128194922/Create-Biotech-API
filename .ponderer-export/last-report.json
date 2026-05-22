@@ -9,23 +9,93 @@
   "ignoredFindings": [],
   "sceneOutcomes": [
     {
-      "sceneId": "ponderer:creeper_blast_chamber",
-      "sceneKey": "ponderer:creeper_blast_chamber",
-      "className": "GeneratedCreeperBlastChamber_685cd207",
+      "sceneId": "ponderer:bone_ratchet",
+      "sceneKey": "ponderer:bone_ratchet",
+      "className": "GeneratedBoneRatchet_a2661e15",
       "status": "COMPLETE",
       "replaced": false,
-      "exportedSegments": 5,
+      "exportedSegments": 1,
       "blankSegments": 0,
       "omittedSteps": 0,
       "ownedFiles": [
-        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedCreeperBlastChamber_685cd207.java",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/basic_xl.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber_xs.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bomber_s.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/powered_bomber.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/128bomber.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/256bomber.nbt"
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedBoneRatchet_a2661e15.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bone1.nbt",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bone2.nbt"
+      ],
+      "messages": []
+    },
+    {
+      "sceneId": "ponderer:evoker_enchanting_chamber",
+      "sceneKey": "ponderer:evoker_enchanting_chamber",
+      "className": "GeneratedEvokerEnchantingChamber_fcd0c16f",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 2,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedEvokerEnchantingChamber_fcd0c16f.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "messages": []
+    },
+    {
+      "sceneId": "ponderer:magma_belt_connector",
+      "sceneKey": "ponderer:magma_belt_connector",
+      "className": "GeneratedMagmaBeltConnector_bce67acc",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 1,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedMagmaBeltConnector_bce67acc.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "messages": []
+    },
+    {
+      "sceneId": "ponderer:slime_clutch",
+      "sceneKey": "ponderer:slime_clutch",
+      "className": "GeneratedSlimeClutch_7a6c2b57",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 1,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedSlimeClutch_7a6c2b57.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/slime2.nbt"
+      ],
+      "messages": []
+    },
+    {
+      "sceneId": "ponderer:squid_printer",
+      "sceneKey": "ponderer:squid_printer",
+      "className": "GeneratedSquidPrinter_68898fcb",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 2,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedSquidPrinter_68898fcb.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/1.nbt"
+      ],
+      "messages": []
+    },
+    {
+      "sceneId": "ponderer:universal_joint",
+      "sceneKey": "ponderer:universal_joint",
+      "className": "GeneratedUniversalJoint_09ad9873",
+      "status": "COMPLETE",
+      "replaced": false,
+      "exportedSegments": 1,
+      "blankSegments": 0,
+      "omittedSteps": 0,
+      "ownedFiles": [
+        "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedUniversalJoint_09ad9873.java",
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/slime1.nbt"
       ],
       "messages": []
     }
