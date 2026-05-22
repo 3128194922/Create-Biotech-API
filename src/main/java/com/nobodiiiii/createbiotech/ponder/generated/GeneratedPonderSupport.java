@@ -1,7 +1,6 @@
 package com.nobodiiiii.createbiotech.ponder.generated;
 
 import com.mojang.logging.LogUtils;
-import com.simibubi.create.foundation.blockEntity.SmartBlockEntity;
 import net.createmod.catnip.math.Pointing;
 import net.createmod.ponder.api.PonderPalette;
 import net.createmod.ponder.api.element.ElementLink;
@@ -323,15 +322,14 @@ public final class GeneratedPonderSupport {
         }
         ensureSceneCanShowRange(scene, pos1, targetPos2, immediate);
         updateVisibleRange(context, pos1, targetPos2, immediate);
-        Selection selection = scene.getScene().getSceneBuildingUtil().select().fromTo(pos1, targetPos2);
         if (!pos1.equals(targetPos2)) {
+            Selection selection = scene.getScene().getSceneBuildingUtil().select().fromTo(pos1, targetPos2);
             scene.world().setBlocks(selection, state, particles);
             applySetBlockNbtPatch(scene, nbt, selection);
         } else {
             scene.world().setBlock(pos1, state, particles);
-            applySetBlockNbtPatch(scene, nbt, selection);
+            applySetBlockNbtPatch(scene, nbt, scene.getScene().getSceneBuildingUtil().select().position(pos1));
         }
-        markSmartBlockEntitiesVirtual(scene, selection);
     }
 
     public static void destroyBlock(SceneBuilder scene, Context context, BlockPos pos, Boolean destroyParticles) {
@@ -360,7 +358,6 @@ public final class GeneratedPonderSupport {
         Selection selection = scene.getScene().getSceneBuildingUtil().select().fromTo(pos1, targetPos2);
         scene.world().replaceBlocks(selection, applyBlockProperties(block.defaultBlockState(), blockProperties),
             !Boolean.FALSE.equals(spawnParticles));
-        markSmartBlockEntitiesVirtual(scene, selection);
         updateVisibleRange(context, pos1, targetPos2, true);
     }
 
@@ -542,92 +539,6 @@ public final class GeneratedPonderSupport {
         }
     }
 
-    public static void emitParticles(SceneBuilder scene, String particleId, Vec3 location, Vec3 motion,
-                                     float amountPerCycle, int cycles) {
-        if (particleId == null || location == null) {
-            return;
-        }
-        ResourceLocation loc = ResourceLocation.tryParse(particleId);
-        if (loc == null) {
-            return;
-        }
-        net.minecraft.core.particles.ParticleType<?> type =
-            BuiltInRegistries.PARTICLE_TYPE.getOptional(loc).orElse(null);
-        if (!(type instanceof net.minecraft.core.particles.SimpleParticleType simple)) {
-            return;
-        }
-        Vec3 vel = motion == null ? Vec3.ZERO : motion;
-        var emitter = scene.effects().simpleParticleEmitter(simple, vel);
-        scene.effects().emitParticles(location, emitter, amountPerCycle, Math.max(1, cycles));
-    }
-
-    public static void startCompressionAnimation(SceneBuilder scene, String entityId,
-                                                 int rtStart, int kineticSpeed, float peak) {
-        ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
-        int tickSpeed = kineticSpeed == 0 ? 0
-            : (int) net.minecraft.util.Mth.lerp(net.minecraft.util.Mth.clamp(Math.abs(kineticSpeed) / 512f, 0f, 1f), 1f, 60f);
-        scene.world().modifyEntities(net.minecraft.world.entity.monster.Creeper.class, creeper -> {
-            if (filter != null && !EntityType.getKey(creeper.getType()).equals(filter)) {
-                return;
-            }
-            CompoundTag animTag = new CompoundTag();
-            animTag.putInt("StartTick", creeper.tickCount);
-            animTag.putInt("RtStart", rtStart);
-            animTag.putInt("TickSpeed", tickSpeed);
-            animTag.putFloat("Peak", peak);
-            CompoundTag forgeData = creeper.getPersistentData();
-            String root = "create_biotech";
-            CompoundTag biotech = forgeData.contains(root, Tag.TAG_COMPOUND)
-                ? forgeData.getCompound(root) : new CompoundTag();
-            biotech.put("PonderCompressionAnim", animTag);
-            biotech.remove("PonderCompression");
-            forgeData.put(root, biotech);
-        });
-    }
-
-    public static void clearCompressionAnimation(SceneBuilder scene, String entityId) {
-        ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
-        scene.world().modifyEntities(net.minecraft.world.entity.monster.Creeper.class, creeper -> {
-            if (filter != null && !EntityType.getKey(creeper.getType()).equals(filter)) {
-                return;
-            }
-            CompoundTag forgeData = creeper.getPersistentData();
-            if (!forgeData.contains("create_biotech", Tag.TAG_COMPOUND)) {
-                return;
-            }
-            CompoundTag biotech = forgeData.getCompound("create_biotech");
-            biotech.remove("PonderCompressionAnim");
-            biotech.remove("PonderCompression");
-        });
-    }
-
-    public static void startPressCycle(SceneBuilder scene, BlockPos pos1, BlockPos pos2, float kineticSpeed) {
-        BlockPos posMin = new BlockPos(
-            Math.min(pos1.getX(), pos2.getX()),
-            Math.min(pos1.getY(), pos2.getY()),
-            Math.min(pos1.getZ(), pos2.getZ()));
-        BlockPos posMax = new BlockPos(
-            Math.max(pos1.getX(), pos2.getX()),
-            Math.max(pos1.getY(), pos2.getY()),
-            Math.max(pos1.getZ(), pos2.getZ()));
-        Selection selection = scene.getScene().getSceneBuildingUtil().select().fromTo(posMin, posMax);
-        scene.world().modifyBlockEntityNBT(selection,
-            com.simibubi.create.content.kinetics.gauge.SpeedGaugeBlockEntity.class,
-            nbt -> nbt.putFloat("Value",
-                com.simibubi.create.content.kinetics.gauge.SpeedGaugeBlockEntity.getDialTarget(kineticSpeed)));
-        scene.world().modifyBlockEntityNBT(selection,
-            com.simibubi.create.content.kinetics.base.KineticBlockEntity.class,
-            nbt -> nbt.putFloat("Speed", kineticSpeed));
-        markSmartBlockEntitiesVirtual(scene, selection);
-        for (BlockPos pos : BlockPos.betweenClosed(posMin, posMax)) {
-            BlockPos copy = pos.immutable();
-            scene.world().modifyBlockEntity(copy,
-                com.simibubi.create.content.kinetics.press.MechanicalPressBlockEntity.class,
-                press -> press.getPressingBehaviour().start(
-                    com.simibubi.create.content.kinetics.press.PressingBehaviour.Mode.WORLD));
-        }
-    }
-
     public static void clearEntities(SceneBuilder scene, boolean fullScene, String entityId,
                                      BlockPos pos1, BlockPos pos2) {
         ResourceLocation filter = entityId == null || entityId.isBlank() ? null : ResourceLocation.tryParse(entityId);
@@ -766,7 +677,6 @@ public final class GeneratedPonderSupport {
         Selection selection = scene.getScene().getSceneBuildingUtil().select().fromTo(pos1, pos2);
         scene.world().setBlocks(selection, state, false);
         applySetBlockNbtPatch(scene, nbt, selection);
-        markSmartBlockEntitiesVirtual(scene, selection);
         String key = linkId == null ? "" : linkId.trim();
         if (key.isEmpty()) {
             key = autoLinkId(context);
@@ -789,15 +699,6 @@ public final class GeneratedPonderSupport {
             scene.world().modifyBlockEntityNBT(selection, BlockEntity.class, data -> data.merge(patch.copy()), true);
         } catch (Exception ignored) {
         }
-    }
-
-    private static void markSmartBlockEntitiesVirtual(SceneBuilder scene, Selection selection) {
-        scene.addInstruction(ponderScene -> selection.forEach(pos -> {
-            BlockEntity blockEntity = ponderScene.getWorld().getBlockEntity(pos);
-            if (blockEntity instanceof SmartBlockEntity smartBlockEntity) {
-                smartBlockEntity.markVirtual();
-            }
-        }));
     }
 
     private static void ensureSceneCanShowRange(SceneBuilder scene, BlockPos pos1, BlockPos pos2,
@@ -1363,14 +1264,6 @@ public final class GeneratedPonderSupport {
                 scene.world().modifyBlockEntityNBT(sel, BlockEntity.class, nbt -> nbt.merge(patch.copy()), true);
             }
         }
-        scene.addInstruction(ponderScene -> {
-            for (PlacedBlock b : placed) {
-                BlockEntity blockEntity = ponderScene.getWorld().getBlockEntity(b.pos);
-                if (blockEntity instanceof SmartBlockEntity smartBlockEntity) {
-                    smartBlockEntity.markVirtual();
-                }
-            }
-        });
         applyExtraPlacedVisibility(context, placed, placeVisible);
 
         if (!animatedReveal) {
