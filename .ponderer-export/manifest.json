@@ -340,7 +340,7 @@
         "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedSchrodingersCat_646f5047.java"
       ],
       "resourceFiles": [
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/schrodingers_cat_base.nbt"
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/basic.nbt"
       ],
       "langEntries": {
         "zh_cn": {
@@ -426,7 +426,7 @@
       ],
       "resourceFiles": [
         "src/main/resources/assets/create_biotech/ponder/generated/ponderer/basic.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/packager1.nbt"
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bio_packager_capture.nbt"
       ],
       "langEntries": {
         "zh_cn": {

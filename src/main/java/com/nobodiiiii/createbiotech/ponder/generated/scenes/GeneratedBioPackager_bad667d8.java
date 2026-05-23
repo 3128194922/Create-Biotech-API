@@ -21,7 +21,7 @@ public final class GeneratedBioPackager_bad667d8 {
         ResourceLocation[] tags = new ResourceLocation[]{new ResourceLocation("create_biotech", "ponderer_exported")};
         var multi = helper.forComponents(java.util.List.of(new ResourceLocation("create_biotech", "bio_packager")));
         multi.addStoryBoard(new ResourceLocation("create_biotech", "generated/ponderer/basic"), GeneratedBioPackager_bad667d8::storyboard$0, tags);
-        multi.addStoryBoard(new ResourceLocation("create_biotech", "generated/ponderer/packager1"), GeneratedBioPackager_bad667d8::storyboard$1, tags);
+        multi.addStoryBoard(new ResourceLocation("create_biotech", "generated/ponderer/bio_packager_capture"), GeneratedBioPackager_bad667d8::storyboard$1, tags);
     }
 
     public static void registerTags(PonderTagRegistrationHelper<ResourceLocation> helper) {

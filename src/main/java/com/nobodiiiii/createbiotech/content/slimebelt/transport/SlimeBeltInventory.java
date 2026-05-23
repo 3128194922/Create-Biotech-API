@@ -630,6 +630,17 @@ public class SlimeBeltInventory {
 		if (inputBehaviour != null && inputBehaviour.canInsertFromSide(insertSide))
 			return Ending.INSERT;
 
+		// If an adjacent slime belt of a different chain rejected our INSERT
+		// (e.g. antiparallel rotation), treat it as a hard obstruction rather
+		// than letting items wrap around our own connector loop to escape it.
+		SlimeBeltBlockEntity adjacentSegment = SlimeBeltHelper.getSegmentBE(world, outputPosition);
+		if (adjacentSegment != null) {
+			SlimeBeltBlockEntity adjacentController = adjacentSegment.getControllerBE();
+			if (adjacentController != null
+				&& !adjacentController.getBlockPos().equals(belt.getBlockPos()))
+				return Ending.BLOCKED;
+		}
+
 		if (BlockHelper.hasBlockSolidSide(world.getBlockState(outputPosition), world, outputPosition,
 			insertSide.getOpposite()))
 			return Ending.BLOCKED;

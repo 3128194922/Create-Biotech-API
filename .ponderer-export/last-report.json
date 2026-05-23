@@ -20,7 +20,7 @@
       "ownedFiles": [
         "src/main/java/com/nobodiiiii/createbiotech/ponder/generated/scenes/GeneratedBioPackager_bad667d8.java",
         "src/main/resources/assets/create_biotech/ponder/generated/ponderer/basic.nbt",
-        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/packager1.nbt"
+        "src/main/resources/assets/create_biotech/ponder/generated/ponderer/bio_packager_capture.nbt"
       ],
       "messages": []
     }
