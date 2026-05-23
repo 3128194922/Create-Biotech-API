@@ -43,8 +43,16 @@ public abstract class FunnelBlockMixin {
 			context.getClickedPos()));
 	}
 
-	@Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
-		at = @At("HEAD"), cancellable = true)
+	// TODO(belt-placement-restore): re-enable once the crash is diagnosed and the revert/re-attach
+	// invariants are stabilised. The original idea: when a slime belt is placed adjacent to an existing
+	// plain FunnelBlock, this updateShape hook converts the funnel into a BeltFunnel attached to the new
+	// surface. Currently this path crashes when placing a belt next to a funnel (likely a re-entrancy or
+	// surface-stale issue during the LevelAccessor neighbour update). For now the auto-attach is disabled:
+	// only initial placement via getStateForPlacement specialises (which is sufficient for the typical
+	// "right-click chest above belt" workflow). Players who already have a placed funnel and want to
+	// attach it after building the belt must remove and replace the funnel.
+	// @Inject(method = "updateShape(Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/core/Direction;Lnet/minecraft/world/level/block/state/BlockState;Lnet/minecraft/world/level/LevelAccessor;Lnet/minecraft/core/BlockPos;Lnet/minecraft/core/BlockPos;)Lnet/minecraft/world/level/block/state/BlockState;",
+	//   at = @At("HEAD"), cancellable = true)
 	private void createBiotech$updateShape(BlockState state, Direction direction, BlockState neighbour,
 		LevelAccessor world, BlockPos pos, BlockPos neighbourPos, CallbackInfoReturnable<BlockState> cir) {
 		Direction worldFacing = AbstractFunnelBlock.getFunnelFacing(state);

@@ -352,13 +352,22 @@ public class SlimeBeltBlockEntity extends KineticBlockEntity implements BeltSurf
 	}
 
 	private LazyOptional<IItemHandler> getItemHandler(Direction side) {
+		// Don't construct (and cache) a handler before the controller's inventory is ready — otherwise
+		// the LazyOptional.of(supplier) below would resolve to a SlimeItemHandlerBeltSegment whose
+		// beltInventory field is null, and subsequent getStackInSlot/insertItem/extractItem calls would NPE.
+		// This happens at world-load time when a neighbouring funnel ticks before the belt chain is wired up.
+		// Note: this preserves the per-side (FRONT/BACK track) routing — once the inventory is ready, the
+		// cached handler still holds a stable inventory ref, and `side` keeps directing each request to its track.
+		SlimeBeltInventory inv = getInventory();
+		if (inv == null)
+			return LazyOptional.empty();
 		if (side == null) {
 			if (!nullSideHandler.isPresent())
-				nullSideHandler = LazyOptional.of(() -> new SlimeItemHandlerBeltSegment(getInventory(), index, Direction.UP));
+				nullSideHandler = LazyOptional.of(() -> new SlimeItemHandlerBeltSegment(inv, index, Direction.UP));
 			return nullSideHandler;
 		}
 		return sidedHandlers.computeIfAbsent(side,
-			dir -> LazyOptional.of(() -> new SlimeItemHandlerBeltSegment(getInventory(), index, dir)));
+			dir -> LazyOptional.of(() -> new SlimeItemHandlerBeltSegment(inv, index, dir)));
 	}
 
 	private boolean canInsertFrom(Direction side) {
