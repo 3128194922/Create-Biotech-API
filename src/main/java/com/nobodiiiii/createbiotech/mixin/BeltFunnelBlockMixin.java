@@ -71,7 +71,11 @@ public abstract class BeltFunnelBlockMixin {
 		BeltSurface surface = BeltSurfaceResolver.resolve(world, pos);
 		if (surface == null)
 			surface = BeltSurfaceResolver.resolveForPlacement(world, pos);
-		if (surface == null)
+		// Only claim authority over surfaces that have a real host (slime belt). For
+		// non-host belts (vanilla / magma / power), the resolver synthesises a phantom surface with
+		// canonical movementFacing=NORTH which would give wrong RETRACTED/PUSHING answers — fall
+		// through to vanilla / MagmaBeltFunnelBlockMixin which read the actual belt facing.
+		if (surface == null || surface.host() == null)
 			return;
 		// localFacing here is in surface-local (canonical) frame; project back to world to compare against
 		// the belt's actual movement axis. RETRACTED iff the funnel sits in-line with belt motion.
@@ -103,9 +107,21 @@ public abstract class BeltFunnelBlockMixin {
 		if (attachment != null) {
 			BlockPos beltPos = pos.relative(attachment);
 			BlockEntity be = world.getBlockEntity(beltPos);
-			boolean valid = be instanceof BeltSurfaceHost host
-				&& host.surfaceFor(attachment.getOpposite()) != null;
-			cir.setReturnValue(valid);
+			if (be instanceof BeltSurfaceHost host) {
+				// Surface-based belt (e.g. slime belt): authoritative answer comes from the host's surface
+				// table — covers lateral and vertical-track attachments that vanilla can't reason about.
+				cir.setReturnValue(host.surfaceFor(attachment.getOpposite()) != null);
+				return;
+			}
+			// Not a surface host. For non-canonical attachments (lateral / top-of-vertical) vanilla's
+			// pos.below()-only check is meaningless, so the funnel must revert.
+			if (attachment != Direction.DOWN) {
+				cir.setReturnValue(false);
+				return;
+			}
+			// Canonical DOWN attachment over a non-surface-host belt — fall through to vanilla's
+			// isOnValidBelt, which handles vanilla BeltBlock instanceof + DirectBeltInputBehaviour
+			// (magma / power belts opt in via allowingBeltFunnelsWhen).
 			return;
 		}
 		// No attachment encoded yet (e.g. vanilla's placement-time check on a fresh default state):
@@ -120,7 +136,10 @@ public abstract class BeltFunnelBlockMixin {
 		CallbackInfoReturnable<InteractionResult> cir) {
 		Level world = context.getLevel();
 		BeltSurface surface = BeltSurfaceResolver.resolve(world, context.getClickedPos());
-		if (surface == null)
+		// Only claim wrench authority over surface-host belts (slime belt). For vanilla / magma /
+		// power belts the resolver returns a phantom surface with no host — defer to their own
+		// wrench handlers (e.g. MagmaBeltFunnelBlockMixin) which read the actual belt slope/facing.
+		if (surface == null || surface.host() == null)
 			return;
 		if (world.isClientSide) {
 			cir.setReturnValue(InteractionResult.SUCCESS);

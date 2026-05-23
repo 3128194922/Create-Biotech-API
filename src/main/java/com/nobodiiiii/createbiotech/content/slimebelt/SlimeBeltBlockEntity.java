@@ -374,21 +374,10 @@ public class SlimeBeltBlockEntity extends KineticBlockEntity implements BeltSurf
 		side = resolveInsertionSide(side);
 		if (getSpeed() == 0)
 			return false;
-		BlockState state = getBlockState();
-		if (side == getMovementFacing().getOpposite())
-			return false;
 		SlimeBeltBlockEntity controllerBE = getControllerBE();
 		if (controllerBE == null)
 			return false;
-		SlimeBeltHelper.Track track = SlimeBeltHelper.resolveInputTrack(state, side);
-		if (!SlimeBeltHelper.isTrackClosestToInputSide(controllerBE, index, track, side))
-			return false;
-		if (state.hasProperty(SlimeBeltBlock.SLOPE) && (state.getValue(SlimeBeltBlock.SLOPE) == BeltSlope.SIDEWAYS
-			|| state.getValue(SlimeBeltBlock.SLOPE) == BeltSlope.VERTICAL)) {
-			Direction frontInputSide = SlimeBeltHelper.getFrontInputSide(state);
-			return side == frontInputSide || side == frontInputSide.getOpposite();
-		}
-		return true;
+		return SlimeBeltHelper.resolveIOTarget(controllerBE, index, side) != null;
 	}
 
 	private boolean isOccupied(Direction side) {

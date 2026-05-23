@@ -21,6 +21,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 
+import net.minecraftforge.client.model.data.ModelData;
+
 public class PowerBeltBlockEntity extends GeneratingKineticBlockEntity {
 
 	public static final float MIN_SURFACE_SPEED = 1.0E-4f;
@@ -280,6 +282,14 @@ public class PowerBeltBlockEntity extends GeneratingKineticBlockEntity {
 	@Override
 	public AABB createRenderBoundingBox() {
 		return isController() ? super.createRenderBoundingBox().inflate(beltLength + 1) : super.createRenderBoundingBox();
+	}
+
+	@Override
+	public ModelData getModelData() {
+		return ModelData.builder()
+			.with(com.simibubi.create.content.kinetics.belt.BeltModel.CASING_PROPERTY, casing)
+			.with(com.simibubi.create.content.kinetics.belt.BeltModel.COVER_PROPERTY, covered)
+			.build();
 	}
 
 	@Override

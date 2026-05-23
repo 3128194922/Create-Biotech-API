@@ -44,6 +44,20 @@ public class SlimeBeltHelper {
 		Direction side) {
 	}
 
+	public record IOTarget(Track track, LoopSection connector) {
+		public static IOTarget ofTrack(Track track) {
+			return new IOTarget(track, null);
+		}
+
+		public static IOTarget ofConnector(LoopSection connector) {
+			return new IOTarget(null, connector);
+		}
+
+		public boolean isConnector() {
+			return connector != null;
+		}
+	}
+
 	public static Map<Item, Boolean> uprightCache = new Object2BooleanOpenHashMap<>();
 	public static final ResourceManagerReloadListener LISTENER = resourceManager -> uprightCache.clear();
 
@@ -160,6 +174,29 @@ public class SlimeBeltHelper {
 			return Track.BACK;
 
 		return Track.FRONT;
+	}
+
+	public static IOTarget resolveIOTarget(SlimeBeltBlockEntity controller, int segment, Direction side) {
+		if (controller == null || controller.beltLength <= 0)
+			return null;
+
+		if (side != null && side.getAxis() == getChainBlockAxis(controller)) {
+			boolean atEndpoint = segment == 0 || segment == controller.beltLength - 1;
+			if (!atEndpoint)
+				return null;
+		}
+
+		Track track = resolveInputTrack(controller.getBlockState(), side);
+		if (side != null && !isTrackClosestToInputSide(controller, segment, track, side))
+			return null;
+		return IOTarget.ofTrack(track);
+	}
+
+	private static net.minecraft.core.Direction.Axis getChainBlockAxis(SlimeBeltBlockEntity controller) {
+		BeltSlope slope = controller.getBlockState().getValue(SlimeBeltBlock.SLOPE);
+		if (slope == BeltSlope.VERTICAL)
+			return net.minecraft.core.Direction.Axis.Y;
+		return controller.getBeltFacing().getAxis();
 	}
 
 	public static Vec3 getFrontSurfaceNormal(SlimeBeltBlockEntity controller) {
