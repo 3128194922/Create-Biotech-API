@@ -1,21 +1,16 @@
 package com.nobodiiiii.createbiotech.client.render;
 
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Map;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.nobodiiiii.createbiotech.content.slimemimic.SlimeMimicHandler;
-import com.nobodiiiii.createbiotech.mixin.client.AgeableListModelFieldsAccessor;
-import com.nobodiiiii.createbiotech.mixin.client.LlamaModelAccessor;
 import com.nobodiiiii.createbiotech.mixin.client.ModelPartAccessor;
-import com.simibubi.create.foundation.mixin.accessor.AgeableListModelAccessor;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.AgeableListModel;
 import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.model.HierarchicalModel;
-import net.minecraft.client.model.LlamaModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -46,19 +41,14 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 	private static final float OVERLAY_BLUE = 0.72f;
 	private static final float OVERLAY_ALPHA = 0.28f;
 
-	private final ModelPart innerCube;
-	private final ModelPart outerCube;
+	private static final ThreadLocal<Deque<RenderContext>> RENDER_CONTEXTS = ThreadLocal.withInitial(ArrayDeque::new);
+	private static final ThreadLocal<Integer> INTERNAL_RENDER_DEPTH = ThreadLocal.withInitial(() -> 0);
+
+	private static ModelPart innerCube;
+	private static ModelPart outerCube;
 
 	public SlimeMimicRenderLayer(RenderLayerParent<T, M> renderer) {
 		super(renderer);
-		ModelPart innerRoot = Minecraft.getInstance()
-			.getEntityModels()
-			.bakeLayer(ModelLayers.SLIME);
-		ModelPart outerRoot = Minecraft.getInstance()
-			.getEntityModels()
-			.bakeLayer(ModelLayers.SLIME_OUTER);
-		this.innerCube = innerRoot.getChild("cube");
-		this.outerCube = outerRoot.getChild("cube");
 	}
 
 	@Override
@@ -67,18 +57,12 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 		if (!SlimeMimicHandler.isSlimeMimic(entity) || entity.isInvisible())
 			return;
 
-		M model = getParentModel();
-		if (supportsSlimeMimicModel(model)) {
-			renderSlimeBody(model, poseStack, buffer, packedLight, overlay(entity));
-			return;
+		beginFallbackOverlay(buffer);
+		try {
+			renderFallbackOverlay(getParentModel(), entity, poseStack, buffer, packedLight, overlay(entity));
+		} finally {
+			endPartInterception();
 		}
-
-		renderFallbackOverlay(entity, poseStack, buffer, packedLight, overlay(entity));
-	}
-
-	public static boolean supportsSlimeMimicModel(EntityModel<?> model) {
-		return model instanceof HierarchicalModel<?> || model instanceof AgeableListModel<?>
-			|| model instanceof LlamaModel<?>;
 	}
 
 	public static void registerOnAll(EntityRenderDispatcher dispatcher) {
@@ -95,93 +79,39 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 		livingRenderer.addLayer((RenderLayer) new SlimeMimicRenderLayer<>(livingRenderer));
 	}
 
-	@SuppressWarnings("unchecked")
-	private void renderSlimeBody(M model, PoseStack poseStack, MultiBufferSource buffer, int packedLight, int overlay) {
-		if (model instanceof HierarchicalModel<?> hierarchicalModel) {
-			renderPartRecursive(((HierarchicalModel<T>) hierarchicalModel).root(), poseStack, buffer, packedLight, overlay);
-			return;
-		}
-
-		if (model instanceof LlamaModel<?> llamaModel) {
-			renderLlamaModel(llamaModel, poseStack, buffer, packedLight, overlay);
-			return;
-		}
-
-		AgeableListModel<T> ageableModel = (AgeableListModel<T>) model;
-		Iterable<ModelPart> headParts = ((AgeableListModelAccessor) ageableModel).create$callHeadParts();
-		Iterable<ModelPart> bodyParts = ((AgeableListModelAccessor) ageableModel).create$callBodyParts();
-		AgeableListModelFieldsAccessor fields = (AgeableListModelFieldsAccessor) ageableModel;
-
-		if (ageableModel.young) {
-			poseStack.pushPose();
-			if (fields.createBiotech$scaleHead()) {
-				float headScale = 1.5f / fields.createBiotech$getBabyHeadScale();
-				poseStack.scale(headScale, headScale, headScale);
-			}
-			poseStack.translate(0.0f, fields.createBiotech$getBabyYHeadOffset() / 16.0f,
-				fields.createBiotech$getBabyZHeadOffset() / 16.0f);
-			renderParts(headParts, poseStack, buffer, packedLight, overlay);
-			poseStack.popPose();
-
-			poseStack.pushPose();
-			float bodyScale = 1.0f / fields.createBiotech$getBabyBodyScale();
-			poseStack.scale(bodyScale, bodyScale, bodyScale);
-			poseStack.translate(0.0f, fields.createBiotech$getBodyYOffset() / 16.0f, 0.0f);
-			renderParts(bodyParts, poseStack, buffer, packedLight, overlay);
-			poseStack.popPose();
-			return;
-		}
-
-		renderParts(headParts, poseStack, buffer, packedLight, overlay);
-		renderParts(bodyParts, poseStack, buffer, packedLight, overlay);
+	public static void beginBodyPartReplacement(MultiBufferSource buffer) {
+		pushContext(new RenderContext(RenderMode.SLIMEIFY_MODEL_PARTS, buffer));
 	}
 
-	private void renderLlamaModel(LlamaModel<?> llamaModel, PoseStack poseStack, MultiBufferSource buffer,
+	public static void beginFallbackOverlay(MultiBufferSource buffer) {
+		pushContext(new RenderContext(RenderMode.SKIP_MODEL_PARTS, buffer));
+	}
+
+	public static void endPartInterception() {
+		Deque<RenderContext> contexts = RENDER_CONTEXTS.get();
+		if (!contexts.isEmpty())
+			contexts.pop();
+		if (contexts.isEmpty())
+			RENDER_CONTEXTS.remove();
+	}
+
+	public static boolean interceptModelPart(ModelPart part, PoseStack poseStack, int packedLight, int overlay) {
+		if (INTERNAL_RENDER_DEPTH.get() > 0)
+			return false;
+
+		RenderContext context = currentContext();
+		if (context == null)
+			return false;
+
+		if (context.mode == RenderMode.SKIP_MODEL_PARTS)
+			return true;
+
+		renderPartRecursive(part, poseStack, context.buffer, packedLight, overlay);
+		return true;
+	}
+
+	private static void renderPartRecursive(ModelPart part, PoseStack poseStack, MultiBufferSource buffer,
 		int packedLight, int overlay) {
-		LlamaModelAccessor accessor = (LlamaModelAccessor) (Object) llamaModel;
-		ModelPart head = accessor.createBiotech$getHead();
-		ModelPart body = accessor.createBiotech$getBody();
-		ModelPart rightHindLeg = accessor.createBiotech$getRightHindLeg();
-		ModelPart leftHindLeg = accessor.createBiotech$getLeftHindLeg();
-		ModelPart rightFrontLeg = accessor.createBiotech$getRightFrontLeg();
-		ModelPart leftFrontLeg = accessor.createBiotech$getLeftFrontLeg();
-		ModelPart rightChest = accessor.createBiotech$getRightChest();
-		ModelPart leftChest = accessor.createBiotech$getLeftChest();
-
-		if (llamaModel.young) {
-			poseStack.pushPose();
-			poseStack.scale(0.71428573f, 0.64935064f, 0.7936508f);
-			poseStack.translate(0.0f, 1.3125f, 0.22f);
-			renderPartRecursive(head, poseStack, buffer, packedLight, overlay);
-			poseStack.popPose();
-
-			poseStack.pushPose();
-			poseStack.scale(0.625f, 0.45454544f, 0.45454544f);
-			poseStack.translate(0.0f, 2.0625f, 0.0f);
-			renderPartRecursive(body, poseStack, buffer, packedLight, overlay);
-			poseStack.popPose();
-
-			poseStack.pushPose();
-			poseStack.scale(0.45454544f, 0.41322312f, 0.45454544f);
-			poseStack.translate(0.0f, 2.0625f, 0.0f);
-			renderParts(List.of(rightHindLeg, leftHindLeg, rightFrontLeg, leftFrontLeg, rightChest, leftChest), poseStack,
-				buffer, packedLight, overlay);
-			poseStack.popPose();
-			return;
-		}
-
-		renderParts(List.of(head, body, rightHindLeg, leftHindLeg, rightFrontLeg, leftFrontLeg, rightChest, leftChest),
-			poseStack, buffer, packedLight, overlay);
-	}
-
-	private void renderParts(Iterable<ModelPart> parts, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-		int overlay) {
-		for (ModelPart part : parts)
-			renderPartRecursive(part, poseStack, buffer, packedLight, overlay);
-	}
-
-	private void renderPartRecursive(ModelPart part, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-		int overlay) {
 		if (!part.visible)
 			return;
 
@@ -200,7 +130,7 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 		poseStack.popPose();
 	}
 
-	private void renderCube(ModelPart.Cube cube, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
+	private static void renderCube(ModelPart.Cube cube, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
 		int overlay) {
 		float width = cube.maxX - cube.minX;
 		float height = cube.maxY - cube.minY;
@@ -219,21 +149,82 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 		poseStack.translate(centerX, centerY, centerZ);
 		poseStack.scale(width / SLIME_MODEL_WIDTH, height / SLIME_MODEL_WIDTH, depth / SLIME_MODEL_WIDTH);
 		poseStack.translate(0.0f, -SLIME_MODEL_CENTER_Y, 0.0f);
-		innerCube.render(poseStack, innerConsumer, packedLight, overlay, INNER_RED, INNER_GREEN, INNER_BLUE,
-			INNER_ALPHA);
-		outerCube.render(poseStack, outerConsumer, packedLight, overlay, OUTER_RED, OUTER_GREEN, OUTER_BLUE,
-			OUTER_ALPHA);
+		runWithoutPartInterception(() -> {
+			innerCube().render(poseStack, innerConsumer, packedLight, overlay, INNER_RED, INNER_GREEN, INNER_BLUE,
+				INNER_ALPHA);
+			outerCube().render(poseStack, outerConsumer, packedLight, overlay, OUTER_RED, OUTER_GREEN, OUTER_BLUE,
+				OUTER_ALPHA);
+		});
 		poseStack.popPose();
 	}
 
-	private void renderFallbackOverlay(T entity, PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-		int overlay) {
-		VertexConsumer overlayConsumer = buffer.getBuffer(RenderType.entityTranslucent(getTextureLocation(entity)));
-		getParentModel().renderToBuffer(poseStack, overlayConsumer, packedLight, overlay, OVERLAY_RED, OVERLAY_GREEN,
-			OVERLAY_BLUE, OVERLAY_ALPHA);
+	private static void renderFallbackOverlay(EntityModel<?> model, LivingEntity entity, PoseStack poseStack,
+		MultiBufferSource buffer, int packedLight, int overlay) {
+		VertexConsumer overlayConsumer = buffer.getBuffer(RenderType.entityTranslucent(lookupTextureLocation(entity)));
+		model.renderToBuffer(poseStack, overlayConsumer, packedLight, overlay, OVERLAY_RED, OVERLAY_GREEN, OVERLAY_BLUE,
+			OVERLAY_ALPHA);
 	}
 
 	private static int overlay(LivingEntity entity) {
 		return LivingEntityRenderer.getOverlayCoords(entity, 0.0f);
+	}
+
+	private static ResourceLocation lookupTextureLocation(LivingEntity entity) {
+		EntityRenderer<? super LivingEntity> renderer = Minecraft.getInstance()
+			.getEntityRenderDispatcher()
+			.getRenderer(entity);
+		return renderer.getTextureLocation(entity);
+	}
+
+	private static void pushContext(RenderContext context) {
+		RENDER_CONTEXTS.get()
+			.push(context);
+	}
+
+	private static RenderContext currentContext() {
+		return RENDER_CONTEXTS.get()
+			.peek();
+	}
+
+	private static ModelPart innerCube() {
+		if (innerCube == null) {
+			innerCube = Minecraft.getInstance()
+				.getEntityModels()
+				.bakeLayer(ModelLayers.SLIME)
+				.getChild("cube");
+		}
+		return innerCube;
+	}
+
+	private static ModelPart outerCube() {
+		if (outerCube == null) {
+			outerCube = Minecraft.getInstance()
+				.getEntityModels()
+				.bakeLayer(ModelLayers.SLIME_OUTER)
+				.getChild("cube");
+		}
+		return outerCube;
+	}
+
+	private static void runWithoutPartInterception(Runnable runnable) {
+		INTERNAL_RENDER_DEPTH.set(INTERNAL_RENDER_DEPTH.get() + 1);
+		try {
+			runnable.run();
+		} finally {
+			int depth = INTERNAL_RENDER_DEPTH.get() - 1;
+			if (depth <= 0) {
+				INTERNAL_RENDER_DEPTH.remove();
+				return;
+			}
+			INTERNAL_RENDER_DEPTH.set(depth);
+		}
+	}
+
+	private enum RenderMode {
+		SLIMEIFY_MODEL_PARTS,
+		SKIP_MODEL_PARTS
+	}
+
+	private record RenderContext(RenderMode mode, MultiBufferSource buffer) {
 	}
 }

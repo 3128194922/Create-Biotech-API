@@ -31,7 +31,6 @@
     "SpawnEggItemMixin"
   ],
   "client": [
-    "client.AgeableListModelFieldsAccessor",
     "client.BasinRendererMixin",
     "client.CreeperAccessor",
     "client.CreeperRendererMixin",
@@ -41,12 +40,12 @@
     "client.GameRendererMixin",
     "client.GoggleOverlayRendererMixin",
     "client.ItemApplicationCategoryMixin",
-    "client.LlamaModelAccessor",
     "client.LivingEntityRendererMixin",
     "client.PressingBehaviourMixin",
     "client.SpoutCategoryMixin",
     "client.LevelRendererAccessor",
     "client.ModelPartAccessor",
+    "client.ModelPartRenderMixin",
     "client.PonderWorldParticlesMixin"
   ],
   "injectors": {

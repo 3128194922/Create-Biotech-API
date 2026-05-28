@@ -12,6 +12,7 @@ import com.nobodiiiii.createbiotech.client.render.SlimeMimicRenderLayer;
 import com.nobodiiiii.createbiotech.content.slimemimic.SlimeMimicHandler;
 
 import net.minecraft.client.model.EntityModel;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -24,10 +25,18 @@ public abstract class LivingEntityRendererMixin {
 			target = "Lnet/minecraft/client/model/EntityModel;renderToBuffer(Lcom/mojang/blaze3d/vertex/PoseStack;Lcom/mojang/blaze3d/vertex/VertexConsumer;IIFFFF)V"))
 	private void createBiotech$skipBaseBodyForSlimeMimic(EntityModel<?> model, PoseStack poseStack,
 		VertexConsumer consumer, int packedLight, int overlay, float red, float green, float blue, float alpha,
-		Operation<Void> original, @Local(argsOnly = true) LivingEntity entity) {
-		if (SlimeMimicHandler.isSlimeMimic(entity) && SlimeMimicRenderLayer.supportsSlimeMimicModel(model)
-			&& !entity.isInvisible())
+		Operation<Void> original, @Local(argsOnly = true) LivingEntity entity,
+		@Local(argsOnly = true) MultiBufferSource buffer) {
+		if (!SlimeMimicHandler.isSlimeMimic(entity) || entity.isInvisible()) {
+			original.call(model, poseStack, consumer, packedLight, overlay, red, green, blue, alpha);
 			return;
-		original.call(model, poseStack, consumer, packedLight, overlay, red, green, blue, alpha);
+		}
+
+		SlimeMimicRenderLayer.beginBodyPartReplacement(buffer);
+		try {
+			original.call(model, poseStack, consumer, packedLight, overlay, red, green, blue, alpha);
+		} finally {
+			SlimeMimicRenderLayer.endPartInterception();
+		}
 	}
 }
