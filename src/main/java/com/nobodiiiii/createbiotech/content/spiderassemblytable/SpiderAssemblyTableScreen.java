@@ -42,6 +42,7 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 		new ResourceLocation(CreateBiotech.MOD_ID, "textures/gui/spider_assembly_table.png");
 	private static final int BG_WIDTH = 216;
 	private static final int BG_HEIGHT = 113;
+	private static final int BOTTOM_BUTTON_Y = BG_HEIGHT - 24;
 
 	private List<Rect2i> extraAreas = Collections.emptyList();
 
@@ -65,14 +66,15 @@ public class SpiderAssemblyTableScreen extends AbstractSimiContainerScreen<Spide
 		}
 
 		IconButton lockAllButton =
-			new LockAllIconButton(leftPos + 7, topPos + BG_HEIGHT - 24);
+			new LockAllIconButton(leftPos + BG_WIDTH - 62, topPos + BOTTOM_BUTTON_Y);
 		lockAllButton.withCallback(() -> Minecraft.getInstance().gameMode
 			.handleInventoryButtonClick(menu.containerId, SpiderAssemblyTableMenu.LOCK_ALL_BUTTON_ID));
 		lockAllButton.setToolTip(Component.translatable("gui.create_biotech.spider_assembly_table.lock_all"));
 		addRenderableWidget(lockAllButton);
 
 		IconButton confirmButton =
-			new IconButton(leftPos + BG_WIDTH - 25, topPos + BG_HEIGHT - 24, AllIcons.I_CONFIRM);
+			new IconButton(leftPos + BG_WIDTH - 33, topPos + BOTTOM_BUTTON_Y,
+				AllIcons.I_CONFIRM);
 		confirmButton.withCallback(() -> {
 			if (minecraft != null && minecraft.player != null)
 				minecraft.player.closeContainer();
