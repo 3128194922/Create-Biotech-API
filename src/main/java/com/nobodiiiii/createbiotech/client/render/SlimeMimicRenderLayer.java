@@ -31,14 +31,14 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 	private static final ResourceLocation SLIME_TEXTURE = new ResourceLocation("textures/entity/slime/slime.png");
 	private static final float SLIME_MODEL_WIDTH = 8.0f;
 	private static final float SLIME_MODEL_CENTER_Y = 20.0f / 16.0f;
-	private static final float INNER_RED = 0.88f;
+	private static final float INNER_RED = 1.0f;
 	private static final float INNER_GREEN = 1.0f;
-	private static final float INNER_BLUE = 0.88f;
-	private static final float INNER_ALPHA = 0.95f;
-	private static final float OUTER_RED = 0.75f;
+	private static final float INNER_BLUE = 1.0f;
+	private static final float INNER_ALPHA = 1.0f;
+	private static final float OUTER_RED = 1.0f;
 	private static final float OUTER_GREEN = 1.0f;
-	private static final float OUTER_BLUE = 0.75f;
-	private static final float OUTER_ALPHA = 0.55f;
+	private static final float OUTER_BLUE = 1.0f;
+	private static final float OUTER_ALPHA = 1.0f;
 	private static final float OVERLAY_RED = 0.72f;
 	private static final float OVERLAY_GREEN = 1.0f;
 	private static final float OVERLAY_BLUE = 0.72f;
@@ -167,7 +167,7 @@ public class SlimeMimicRenderLayer<T extends LivingEntity, M extends EntityModel
 		float centerZ = (cube.minZ + cube.maxZ) * 0.5f / 16.0f;
 
 		VertexConsumer innerConsumer = buffer.getBuffer(RenderType.entityCutoutNoCull(SLIME_TEXTURE));
-		VertexConsumer outerConsumer = buffer.getBuffer(RenderType.entityTranslucentCull(SLIME_TEXTURE));
+		VertexConsumer outerConsumer = buffer.getBuffer(RenderType.entityTranslucent(SLIME_TEXTURE));
 
 		poseStack.pushPose();
 		poseStack.translate(centerX, centerY, centerZ);
