@@ -23,12 +23,15 @@
     "MagmaBeltFunnelBlockMixin",
     "MechanicalPressBlockEntityMixin",
     "MechanicalMixerBlockEntityMixin",
+    "LivingEntitySlimeMimicMixin",
     "NozzleBlockMixin",
     "MobAccessor",
     "PressingBehaviourSoundMixin",
-    "PowerBeltWalkAnimationMixin"
+    "PowerBeltWalkAnimationMixin",
+    "SpawnEggItemMixin"
   ],
   "client": [
+    "client.AgeableListModelFieldsAccessor",
     "client.BasinRendererMixin",
     "client.CreeperAccessor",
     "client.CreeperRendererMixin",
@@ -38,9 +41,11 @@
     "client.GameRendererMixin",
     "client.GoggleOverlayRendererMixin",
     "client.ItemApplicationCategoryMixin",
+    "client.LivingEntityRendererMixin",
     "client.PressingBehaviourMixin",
     "client.SpoutCategoryMixin",
     "client.LevelRendererAccessor",
+    "client.ModelPartAccessor",
     "client.PonderWorldParticlesMixin"
   ],
   "injectors": {

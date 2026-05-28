@@ -35,6 +35,7 @@ import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointRendere
 import com.simibubi.create.content.kinetics.transmission.SplitShaftRenderer;
 import com.nobodiiiii.createbiotech.foundation.ponder.CreateBiotechPonderPlugin;
 import com.nobodiiiii.createbiotech.client.particle.StraightEnchantParticle;
+import com.nobodiiiii.createbiotech.client.render.SlimeMimicRenderLayer;
 import com.nobodiiiii.createbiotech.registry.CBBlocks;
 import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
 import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
@@ -64,6 +65,7 @@ import net.createmod.catnip.data.Iterate;
 import net.createmod.catnip.lang.FontHelper;
 import net.createmod.ponder.foundation.PonderIndex;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.item.ItemProperties;
 import net.minecraft.client.gui.screens.MenuScreens;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -117,6 +119,11 @@ public class CreateBiotechClient {
 			GhastHotAirBalloonEntityRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON_SEAT.get(),
 			GhastHotAirBalloonSeatEntity.Render::new);
+	}
+
+	@SubscribeEvent
+	public static void addEntityRenderLayers(EntityRenderersEvent.AddLayers event) {
+		SlimeMimicRenderLayer.registerOnAll(Minecraft.getInstance().getEntityRenderDispatcher());
 	}
 
 	@SubscribeEvent
