@@ -27,7 +27,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class PetriDishBlock extends HorizontalDirectionalBlock implements IBE<PetriDishBlockEntity>, IWrenchable {
 
-	private static final VoxelShape SHAPE = box(1, 0, 1, 15, 8, 15);
+	private static final VoxelShape SHAPE = box(0, 0, 0, 16, 16, 16);
 	public static final DirectionProperty FACING = HorizontalDirectionalBlock.FACING;
 
 	public PetriDishBlock(Properties properties) {

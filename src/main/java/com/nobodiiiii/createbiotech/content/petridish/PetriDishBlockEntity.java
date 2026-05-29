@@ -25,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
@@ -193,6 +194,26 @@ public class PetriDishBlockEntity extends SmartBlockEntity implements IHaveGoggl
 		if (recordedEntityId == null || recordedMaxHealth <= 0)
 			return 0;
 		return Math.max(1, (int) Math.ceil(recordedMaxHealth)) * FLUID_PER_HEALTH;
+	}
+
+	public float getFillProgress() {
+		int required = getRequiredFluidAmount();
+		if (required <= 0 || fluidTank.getFluidAmount() <= 0)
+			return 0.0f;
+		return Mth.clamp((float) fluidTank.getFluidAmount() / required, 0.0f, 1.0f);
+	}
+
+	public int getSlimeGrowthStage() {
+		float progress = getFillProgress();
+		if (progress <= 0.0f)
+			return 0;
+		if (progress < 0.25f)
+			return 1;
+		if (progress < 0.5f)
+			return 2;
+		if (progress < 0.75f)
+			return 3;
+		return 4;
 	}
 
 	public boolean canAcceptFluidNow() {

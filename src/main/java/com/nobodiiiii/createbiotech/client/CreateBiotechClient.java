@@ -23,6 +23,7 @@ import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltRenderer;
 import com.nobodiiiii.createbiotech.content.magmabelt.MagmaBeltSpriteShifts;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltRenderer;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltSpriteShifts;
+import com.nobodiiiii.createbiotech.content.petridish.PetriDishRenderer;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatRenderer;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltHelper;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltRenderer;
@@ -117,6 +118,7 @@ public class CreateBiotechClient {
 			GhastHotAirBalloonAssemblyStationRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.BIO_PACKAGER.get(), BioPackagerRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.BONE_RATCHET.get(), BoneRatchetRenderer::new);
+		event.registerBlockEntityRenderer(CBBlockEntityTypes.PETRI_DISH.get(), PetriDishRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get(),
 			GhastHotAirBalloonEntityRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON_SEAT.get(),

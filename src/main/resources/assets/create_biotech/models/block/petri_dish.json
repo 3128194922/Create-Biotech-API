@@ -2,14 +2,14 @@
   "ambientocclusion": false,
   "render_type": "minecraft:translucent",
   "textures": {
-    "particle": "create:block/brass_casing",
-    "brass": "create:block/brass_casing",
-    "glass": "minecraft:block/glass"
+    "particle": "create_biotech:block/petri_dish_brass",
+    "brass": "create_biotech:block/petri_dish_brass",
+    "glass": "create_biotech:block/petri_dish_glass"
   },
   "elements": [
     {
-      "from": [1, 0, 1],
-      "to": [15, 4, 15],
+      "from": [0, 0, 0],
+      "to": [16, 4, 16],
       "faces": {
         "down": { "texture": "#brass" },
         "up": { "texture": "#brass" },
@@ -20,14 +20,14 @@
       }
     },
     {
-      "from": [1, 4, 1],
-      "to": [15, 8, 15],
+      "from": [0, 4, 0],
+      "to": [16, 16, 16],
       "faces": {
         "up": { "texture": "#glass" },
-        "north": { "texture": "#glass", "tintindex": 0 },
-        "south": { "texture": "#glass", "tintindex": 0 },
-        "west": { "texture": "#glass", "tintindex": 0 },
-        "east": { "texture": "#glass", "tintindex": 0 }
+        "north": { "texture": "#glass" },
+        "south": { "texture": "#glass" },
+        "west": { "texture": "#glass" },
+        "east": { "texture": "#glass" }
       }
     }
   ]
