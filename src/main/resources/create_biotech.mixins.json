@@ -6,6 +6,8 @@
   "refmap": "create_biotech.refmap.json",
   "mixins": [
     "AbstractContraptionEntityBufferPadMixin",
+    "AbstractVillagerAccessor",
+    "AbstractVillagerSlimeMimicTradesMixin",
     "AbstractHorizontalFunnelBlockMixin",
     "AssemblyOperatorBlockItemMixin",
     "BasinRecipeMixin",
@@ -29,7 +31,8 @@
     "MobAccessor",
     "PressingBehaviourSoundMixin",
     "PowerBeltWalkAnimationMixin",
-    "SpawnEggItemMixin"
+    "SpawnEggItemMixin",
+    "VillagerSlimeMimicTradesMixin"
   ],
   "client": [
     "client.BasinRendererMixin",

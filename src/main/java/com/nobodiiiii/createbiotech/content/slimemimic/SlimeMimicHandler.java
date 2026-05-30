@@ -45,8 +45,12 @@ public final class SlimeMimicHandler {
 	}
 
 	public static void setSlimeMimic(LivingEntity entity, boolean slimeMimic) {
+		if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager villager && !slimeMimic)
+			SlimeMimicVillagerTrades.restoreOriginalOffers(villager);
 		if (entity instanceof SlimeMimicAccess access)
 			access.createBiotech$setSlimeMimic(slimeMimic);
+		if (entity instanceof net.minecraft.world.entity.npc.AbstractVillager villager && slimeMimic)
+			SlimeMimicVillagerTrades.rewriteSellItems(villager);
 	}
 
 	public static void markSpawnedEntity(@Nullable Entity entity) {
