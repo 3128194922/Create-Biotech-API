@@ -126,6 +126,7 @@
   "create_biotech.creeper_blast_chamber.tooltip.status.working": "Working",
   "create_biotech.creeper_blast_chamber.tooltip.status.blocked_press": "A Press Cannot Operate",
   "create_biotech.creeper_blast_chamber.tooltip.status.insufficient_stress": "Insufficient Stress Input",
+  "create_biotech.creeper_blast_chamber.tooltip.status.chunk_unloaded": "Paused: Structure Spans Unloaded Chunks",
   "create_biotech.creeper_blast_chamber.tooltip.status.overloading": "Overloading",
   "create_biotech.creeper_blast_chamber.tooltip.overload": "Overload: %s",
   "create_biotech.recipe.creeper_blast_chamber_high_pressure": "High-Pressure Implosion",

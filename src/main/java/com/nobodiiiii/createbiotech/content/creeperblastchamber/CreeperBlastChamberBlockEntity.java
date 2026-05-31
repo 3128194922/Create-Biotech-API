@@ -139,6 +139,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	private Axis structurePressAxis;
 	private int overloadPoints;
 	private boolean pressCycleProcessed;
+	private boolean pausedByUnloadedChunks;
 	private int recheckTimer;
 	private final List<PendingUnpack> pendingUnpacks = new ArrayList<>();
 	private final List<PendingAppearance> pendingAppearances = new ArrayList<>();
@@ -168,6 +169,11 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			be.displayGauge.chase(overloadTarget, 0.125f, Chaser.EXP);
 			be.displayGauge.tickChaser();
 			be.tickClientAnimations();
+			return;
+		}
+
+		if (be.updatePausedByUnloadedChunks()) {
+			be.syncFormedBlockState();
 			return;
 		}
 
@@ -458,11 +464,48 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		bottomCenter = valid && origin != null
 			? origin.offset(size / 2, 0, size / 2)
 			: null;
+		pausedByUnloadedChunks = valid && isStructureAreaPartiallyUnloaded(level, origin, size);
 		if (!valid)
 			pressCycleProcessed = false;
 		syncFormedBlockState();
 		syncVaultRoleBindings(level, previousInput, previousOutput);
 		notifyUpdate();
+	}
+
+	private boolean updatePausedByUnloadedChunks() {
+		Level level = getLevel();
+		boolean paused = level != null
+			&& !level.isClientSide
+			&& structureValid
+			&& structureOrigin != null
+			&& isStructureAreaPartiallyUnloaded(level, structureOrigin, structureSize);
+		if (pausedByUnloadedChunks == paused)
+			return paused;
+		pausedByUnloadedChunks = paused;
+		setChanged();
+		notifyUpdate();
+		return paused;
+	}
+
+	private boolean isStructureAreaPartiallyUnloaded(Level level, @Nullable BlockPos origin, int size) {
+		if (origin == null || size <= 0)
+			return false;
+
+		int minChunkX = origin.getX() >> 4;
+		int maxChunkX = (origin.getX() + size - 1) >> 4;
+		int minChunkZ = origin.getZ() >> 4;
+		int maxChunkZ = (origin.getZ() + size - 1) >> 4;
+		for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+			for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+				if (!level.hasChunk(chunkX, chunkZ))
+					return true;
+			}
+		}
+		return false;
+	}
+
+	private boolean isPausedForPartialChunkUnload() {
+		return structureValid && pausedByUnloadedChunks;
 	}
 
 	private void syncFormedBlockState() {
@@ -780,6 +823,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		super.load(tag);
 		structureValid = tag.getBoolean("StructureValid");
 		structureSize = tag.getInt("StructureSize");
+		pausedByUnloadedChunks = false;
 		pendingUnpacks.clear();
 		for (Tag pendingTag : tag.getList(PENDING_UNPACKS_TAG, Tag.TAG_COMPOUND))
 			pendingUnpacks.add(PendingUnpack.read((CompoundTag) pendingTag));
@@ -1839,6 +1883,8 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 		tryDetectStructure();
 		if (!structureValid)
 			return new InsertResult(false, stack);
+		if (isPausedForPartialChunkUnload())
+			return new InsertResult(false, stack);
 		if (!canAcceptIncomingCreeperBox(stack))
 			return new InsertResult(false, stack);
 
@@ -1897,7 +1943,7 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	private void requestControllerOutput() {
-		if (controllerOutputRequested)
+		if (controllerOutputRequested || isPausedForPartialChunkUnload())
 			return;
 		controllerOutputRequested = true;
 		setChanged();
@@ -2329,6 +2375,9 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	private String getStatusTranslationKey() {
+		if (isPausedForPartialChunkUnload())
+			return "create_biotech.creeper_blast_chamber.tooltip.status.chunk_unloaded";
+
 		List<MechanicalPressBlockEntity> presses = getMechanicalPresses();
 		if (hasUnworkablePresses(presses))
 			return "create_biotech.creeper_blast_chamber.tooltip.status.blocked_press";
@@ -2344,6 +2393,9 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 	}
 
 	private ChatFormatting getStatusColor() {
+		if (isPausedForPartialChunkUnload())
+			return ChatFormatting.YELLOW;
+
 		if (hasUnworkablePresses(getMechanicalPresses()))
 			return ChatFormatting.RED;
 

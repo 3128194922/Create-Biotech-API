@@ -126,6 +126,7 @@
   "create_biotech.creeper_blast_chamber.tooltip.status.working": "工作中",
   "create_biotech.creeper_blast_chamber.tooltip.status.blocked_press": "有无法工作的冲压机",
   "create_biotech.creeper_blast_chamber.tooltip.status.insufficient_stress": "应力输入不足",
+  "create_biotech.creeper_blast_chamber.tooltip.status.chunk_unloaded": "部分区块未加载，已暂停",
   "create_biotech.creeper_blast_chamber.tooltip.status.overloading": "过载中",
   "create_biotech.creeper_blast_chamber.tooltip.overload": "过载值：%s",
   "create_biotech.recipe.creeper_blast_chamber_high_pressure": "高压聚爆",
