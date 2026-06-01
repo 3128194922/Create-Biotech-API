@@ -10,7 +10,6 @@ import com.simibubi.create.AllPackets;
 import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
 import com.simibubi.create.content.contraptions.sync.ContraptionSeatMappingPacket;
 
-import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -34,8 +33,7 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 
 	private static final String PERSISTED_SEAT_INDEX_TAG = "CreateBiotechGhastBalloonSeatIndex";
 	private static final String PERSISTED_VEHICLE_TAG = "CreateBiotechGhastBalloonVehicle";
-	private static final String STEERING_YAW_TAG = "CreateBiotechGhastBalloonSteeringYaw";
-	private static final EntityDataAccessor<Float> SYNCED_STEERING_YAW =
+	private static final EntityDataAccessor<Float> SYNCED_YAW =
 		SynchedEntityData.defineId(GhastHotAirBalloonEntity.class, EntityDataSerializers.FLOAT);
 
 	private static final double FORWARD_ACCELERATION = 0.04d;
@@ -49,7 +47,6 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	private static final float TURN_BRAKE = 4.0f;
 	private static final float TURN_DIRECTION_CHANGE_BRAKE = 6.0f;
 	private static final float MAX_TURN_SPEED = 6.0f;
-	private static final float MAX_CONTRAPTION_YAW_STEP = MAX_TURN_SPEED;
 	private static final float TURN_STOP_EPSILON = 0.05f;
 	private static final float TURN_DIRECTION_EPSILON = 0.25f;
 	private static final double MOTION_EPSILON = 1.0E-4d;
@@ -59,7 +56,6 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	private static final double MAGNET_BRAKE_DISTANCE = 2.5d;
 
 	private float deltaRotation;
-	private float steeringYaw;
 	private int inputTimeout;
 	private boolean inputForward;
 	private boolean inputBackward;
@@ -88,34 +84,31 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	@Override
 	protected void defineSynchedData() {
 		super.defineSynchedData();
-		entityData.define(SYNCED_STEERING_YAW, 0f);
+		entityData.define(SYNCED_YAW, 0f);
 	}
 
 	@Override
 	public void startAtYaw(float yaw) {
 		super.startAtYaw(yaw);
-		setSteeringYaw(yaw);
+		setControlledYaw(yaw);
 	}
 
 	@Override
 	public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
 		super.onSyncedDataUpdated(key);
-		if (SYNCED_STEERING_YAW.equals(key))
-			steeringYaw = AngleHelper.wrapAngle180(entityData.get(SYNCED_STEERING_YAW));
+		if (SYNCED_YAW.equals(key))
+			yaw = prevYaw = targetYaw = entityData.get(SYNCED_YAW);
 	}
 
 	@Override
 	protected void readAdditional(CompoundTag compound, boolean spawnPacket) {
 		super.readAdditional(compound, spawnPacket);
-		setSteeringYaw(compound.contains(STEERING_YAW_TAG, Tag.TAG_FLOAT)
-			? AngleHelper.wrapAngle180(compound.getFloat(STEERING_YAW_TAG))
-			: AngleHelper.wrapAngle180(yaw));
+		setControlledYaw(yaw);
 	}
 
 	@Override
 	protected void writeAdditional(CompoundTag compound, boolean spawnPacket) {
 		super.writeAdditional(compound, spawnPacket);
-		compound.putFloat(STEERING_YAW_TAG, steeringYaw);
 	}
 
 	@Override
@@ -154,8 +147,6 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 
 		if (ghast != null)
 			syncGhastYawToBalloon(ghast);
-		if (!level().isClientSide && !inputLeft && !inputRight && deltaRotation == 0)
-			setSteeringYaw(yaw);
 	}
 
 	public void setMagnetTarget(BlockPos pos) {
@@ -259,7 +250,7 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 			return false;
 		clearInputs();
 		deltaRotation = 0;
-		setSteeringYaw(yaw);
+		setControlledYaw(yaw);
 		inputTimeout = 0;
 		return true;
 	}
@@ -293,7 +284,7 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		super.stopControlling(controlsLocalPos);
 		clearInputs();
 		deltaRotation = 0;
-		setSteeringYaw(yaw);
+		setControlledYaw(yaw);
 		inputTimeout = 0;
 	}
 
@@ -302,53 +293,19 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		if (!(riding instanceof Ghast ghast) || !ghast.isAlive())
 			return super.updateOrientation(rotationLock, wasStalled, riding, isOnCoupling);
 
-		prevYaw = yaw;
-		prevPitch = pitch;
-		pitch = 0;
-
-		Vec3 locationDiff = riding.position()
-			.subtract(riding.xo, riding.yo, riding.zo);
-		float movementApproach = updateYawFromMovement(locationDiff, riding.getDeltaMovement());
-		if (!Float.isNaN(movementApproach))
-			return Math.abs(movementApproach) > 0.01f;
-
-		float steeringApproach = updateYawToward(steeringYaw, Float.NaN);
-		return Math.abs(steeringApproach) > 0.01f;
+		prevPitch = pitch = 0;
+		yaw = prevYaw = targetYaw = getControlledYaw();
+		return false;
 	}
 
-	private float updateYawFromMovement(Vec3 locationDiff, Vec3 deltaMovement) {
-		Vec3 horizontalLocationDiff = new Vec3(locationDiff.x, 0, locationDiff.z);
-		Vec3 horizontalMotion = horizontalLocationDiff.lengthSqr() > MOTION_EPSILON
-			? horizontalLocationDiff
-			: new Vec3(deltaMovement.x, 0, deltaMovement.z);
-		if (horizontalMotion.lengthSqr() <= MOTION_EPSILON)
-			return Float.NaN;
-
-		float yawHint = horizontalLocationDiff.lengthSqr() > MOTION_EPSILON
-			? AngleHelper.getShortestAngleDiff(yaw, yawFromVector(horizontalLocationDiff))
-			: Float.NaN;
-		return updateYawToward(yawFromVector(horizontalMotion.normalize()), yawHint);
+	@Override
+	public float getViewYRot(float partialTicks) {
+		return -yaw;
 	}
 
-	private float updateYawToward(float desiredYaw, float yawHint) {
-		targetYaw = desiredYaw;
-		if (targetYaw < 0)
-			targetYaw += 360;
-		if (yaw < 0)
-			yaw += 360;
-
-		float approach = Float.isNaN(yawHint)
-			? AngleHelper.getShortestAngleDiff(yaw, targetYaw)
-			: AngleHelper.getShortestAngleDiff(yaw, targetYaw, yawHint);
-
-		approach = Mth.clamp(approach, -MAX_CONTRAPTION_YAW_STEP, MAX_CONTRAPTION_YAW_STEP);
-		yaw = AngleHelper.wrapAngle180(yaw + approach);
-		targetYaw = AngleHelper.wrapAngle180(targetYaw);
-
-		if (Math.abs(AngleHelper.getShortestAngleDiff(yaw, targetYaw)) < 0.5f)
-			yaw = targetYaw;
-
-		return approach;
+	@Override
+	public float getViewXRot(float partialTicks) {
+		return pitch;
 	}
 
 	private void tickInputTimeout() {
@@ -381,8 +338,12 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 			desiredTurnSpeed = inputRight ? MAX_TURN_SPEED : -MAX_TURN_SPEED;
 		deltaRotation = updateTurnSpeed(deltaRotation, desiredTurnSpeed);
 
-		setSteeringYaw(steeringYaw + deltaRotation);
-		applyYaw(ghast, steeringYaw);
+		float currentYaw = getControlledYaw();
+		if (deltaRotation != 0)
+			currentYaw += deltaRotation;
+		if (deltaRotation != 0 || movement.horizontalDistanceSqr() > MOTION_EPSILON)
+			setControlledYaw(currentYaw);
+		applyYaw(ghast, currentYaw);
 
 		double thrust = 0;
 		if (inputForward)
@@ -390,7 +351,7 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		if (inputBackward)
 			thrust -= BACKWARD_ACCELERATION;
 		if (thrust != 0)
-			movement = movement.add(Vec3.directionFromRotation(0, steeringYaw).scale(thrust));
+			movement = movement.add(Vec3.directionFromRotation(0, currentYaw).scale(thrust));
 
 		double verticalThrust = 0;
 		if (inputUp)
@@ -432,8 +393,8 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		deltaRotation = 0;
 		if (horizDist > 1.0E-6) {
 			float targetYaw = (float) Math.toDegrees(Math.atan2(-delta.x, delta.z));
-			setSteeringYaw(targetYaw);
-			applyYaw(ghast, steeringYaw);
+			setControlledYaw(targetYaw);
+			applyYaw(ghast, targetYaw);
 		}
 
 		ghast.setDeltaMovement(movement);
@@ -461,20 +422,25 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		return Mth.approach(currentTurnSpeed, desiredTurnSpeed, TURN_ACCELERATION);
 	}
 
-	private void setSteeringYaw(float yaw) {
-		steeringYaw = AngleHelper.wrapAngle180(yaw);
+	private void setControlledYaw(float yaw) {
+		this.yaw = yaw;
+		this.prevYaw = yaw;
+		this.targetYaw = yaw;
 		if (!level().isClientSide)
-			entityData.set(SYNCED_STEERING_YAW, steeringYaw);
+			entityData.set(SYNCED_YAW, yaw);
+	}
+
+	private float getControlledYaw() {
+		return level().isClientSide ? entityData.get(SYNCED_YAW) : yaw;
 	}
 
 	private void syncGhastYawToBalloon(Ghast ghast) {
-		float previousYaw = AngleHelper.wrapAngle180(prevYaw);
-		float currentYaw = AngleHelper.wrapAngle180(yaw);
-		ghast.yRotO = previousYaw;
+		float currentYaw = yaw;
+		ghast.yRotO = currentYaw;
 		ghast.setYRot(currentYaw);
-		ghast.yBodyRotO = previousYaw;
+		ghast.yBodyRotO = currentYaw;
 		ghast.setYBodyRot(currentYaw);
-		ghast.yHeadRotO = previousYaw;
+		ghast.yHeadRotO = currentYaw;
 		ghast.setYHeadRot(currentYaw);
 	}
 
