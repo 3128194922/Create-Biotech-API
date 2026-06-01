@@ -10,6 +10,7 @@ import com.simibubi.create.AllPackets;
 import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
 import com.simibubi.create.content.contraptions.sync.ContraptionSeatMappingPacket;
 
+import net.createmod.catnip.math.AngleHelper;
 import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -96,8 +97,6 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	@Override
 	public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
 		super.onSyncedDataUpdated(key);
-		if (SYNCED_YAW.equals(key))
-			yaw = prevYaw = targetYaw = entityData.get(SYNCED_YAW);
 	}
 
 	@Override
@@ -293,14 +292,18 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		if (!(riding instanceof Ghast ghast) || !ghast.isAlive())
 			return super.updateOrientation(rotationLock, wasStalled, riding, isOnCoupling);
 
-		prevPitch = pitch = 0;
-		yaw = prevYaw = targetYaw = getControlledYaw();
-		return false;
+		prevYaw = yaw;
+		prevPitch = pitch;
+		pitch = 0;
+		float desiredYaw = getControlledYaw();
+		targetYaw = desiredYaw;
+		yaw = desiredYaw;
+		return Math.abs(AngleHelper.getShortestAngleDiff(prevYaw, yaw)) > 0.01f;
 	}
 
 	@Override
 	public float getViewYRot(float partialTicks) {
-		return -yaw;
+		return -(partialTicks == 1.0F ? yaw : AngleHelper.angleLerp(partialTicks, prevYaw, yaw));
 	}
 
 	@Override
@@ -423,24 +426,22 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 	}
 
 	private void setControlledYaw(float yaw) {
-		this.yaw = yaw;
-		this.prevYaw = yaw;
-		this.targetYaw = yaw;
 		if (!level().isClientSide)
 			entityData.set(SYNCED_YAW, yaw);
 	}
 
 	private float getControlledYaw() {
-		return level().isClientSide ? entityData.get(SYNCED_YAW) : yaw;
+		return entityData.get(SYNCED_YAW);
 	}
 
 	private void syncGhastYawToBalloon(Ghast ghast) {
+		float previousYaw = prevYaw;
 		float currentYaw = yaw;
-		ghast.yRotO = currentYaw;
+		ghast.yRotO = previousYaw;
 		ghast.setYRot(currentYaw);
-		ghast.yBodyRotO = currentYaw;
+		ghast.yBodyRotO = previousYaw;
 		ghast.setYBodyRot(currentYaw);
-		ghast.yHeadRotO = currentYaw;
+		ghast.yHeadRotO = previousYaw;
 		ghast.setYHeadRot(currentYaw);
 	}
 
