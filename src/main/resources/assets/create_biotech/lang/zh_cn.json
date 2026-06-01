@@ -99,6 +99,7 @@
   "create_biotech.petri_dish.goggles.recorded": "已记录生物：%s",
   "create_biotech.petri_dish.goggles.required_fluid": "所需液态活体史莱姆：%s mB",
   "create_biotech.petri_dish.goggles.unrecorded": "尚未记录附近生物",
+  "create_biotech.jade.bionic_prefix": "仿生",
   "block.create_biotech.schrodingers_cat": "薛定谔的猫",
   "block.create_biotech.spider_assembly_table": "蜘蛛装配台",
   "block.create_biotech.spider_assembly_table_cog": "蜘蛛装配台尾齿轮",
