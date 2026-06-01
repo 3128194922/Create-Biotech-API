@@ -265,15 +265,47 @@ public class GhastHotAirBalloonEntity extends OrientedContraptionEntity {
 		prevPitch = pitch;
 		pitch = 0;
 
+		Vec3 locationDiff = riding.position()
+			.subtract(riding.xo, riding.yo, riding.zo);
+		float movementApproach = updateYawFromMovement(locationDiff, riding.getDeltaMovement());
+		if (!Float.isNaN(movementApproach))
+			return Math.abs(movementApproach) > 0.01f;
+
 		targetYaw = AngleHelper.wrapAngle180(ghast.getYRot());
-		float approach = AngleHelper.getShortestAngleDiff(yaw, targetYaw);
+		yaw = targetYaw;
+		return Math.abs(AngleHelper.getShortestAngleDiff(prevYaw, yaw)) > 0.01f;
+	}
+
+	private float updateYawFromMovement(Vec3 locationDiff, Vec3 deltaMovement) {
+		Vec3 horizontalLocationDiff = new Vec3(locationDiff.x, 0, locationDiff.z);
+		Vec3 horizontalMotion = horizontalLocationDiff.lengthSqr() > MOTION_EPSILON
+			? horizontalLocationDiff
+			: new Vec3(deltaMovement.x, 0, deltaMovement.z);
+		if (horizontalMotion.lengthSqr() <= MOTION_EPSILON)
+			return Float.NaN;
+
+		targetYaw = yawFromVector(horizontalMotion.normalize());
+		if (targetYaw < 0)
+			targetYaw += 360;
+		if (yaw < 0)
+			yaw += 360;
+
+		float approach;
+		if (horizontalLocationDiff.lengthSqr() > MOTION_EPSILON) {
+			float yawHint = AngleHelper.getShortestAngleDiff(yaw, yawFromVector(horizontalLocationDiff));
+			approach = AngleHelper.getShortestAngleDiff(yaw, targetYaw, yawHint);
+		} else {
+			approach = AngleHelper.getShortestAngleDiff(yaw, targetYaw);
+		}
+
 		approach = Mth.clamp(approach, -MAX_CONTRAPTION_YAW_STEP, MAX_CONTRAPTION_YAW_STEP);
 		yaw = AngleHelper.wrapAngle180(yaw + approach);
+		targetYaw = AngleHelper.wrapAngle180(targetYaw);
 
 		if (Math.abs(AngleHelper.getShortestAngleDiff(yaw, targetYaw)) < 0.5f)
 			yaw = targetYaw;
 
-		return Math.abs(approach) > 0.01f;
+		return approach;
 	}
 
 	private void tickInputTimeout() {
