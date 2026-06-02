@@ -14,23 +14,29 @@ import com.simibubi.create.foundation.recipe.RecipeFinder;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.level.Level;
 
 @Mixin(BasinOperatingBlockEntity.class)
 public abstract class BasinOperatingBlockEntityMixin {
 
-	@Shadow(remap = false)
-	protected abstract Object getRecipeCacheKey();
+	private static final Object basinEntityProcessingRecipesKey = new Object();
 
 	@Shadow(remap = false)
 	protected abstract <C extends Container> boolean matchBasinRecipe(Recipe<C> recipe);
 
+	@Shadow(remap = false)
+	protected abstract <C extends Container> boolean matchStaticFilters(Recipe<C> recipe);
+
 	@Inject(method = "getMatchingRecipes", at = @At("RETURN"), cancellable = true, remap = false)
 	private void createBiotech$addEntityProcessingRecipes(CallbackInfoReturnable<List<Recipe<?>>> cir) {
 		List<Recipe<?>> recipes = cir.getReturnValue();
+		Level level = ((BasinOperatingBlockEntity) (Object) this).getLevel();
+		if (level == null)
+			return;
 
-		for (Recipe<?> recipe : RecipeFinder.get(getRecipeCacheKey(), ((BasinOperatingBlockEntity) (Object) this).getLevel(),
+		for (Recipe<?> recipe : RecipeFinder.get(basinEntityProcessingRecipesKey, level,
 			r -> r instanceof BasinEntityProcessingRecipe)) {
-			if (!recipes.contains(recipe) && matchBasinRecipe(recipe))
+			if (!recipes.contains(recipe) && matchStaticFilters(recipe) && matchBasinRecipe(recipe))
 				recipes.add(recipe);
 		}
 
