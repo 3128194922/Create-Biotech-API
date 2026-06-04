@@ -5,7 +5,6 @@
 	"render_type": "cutout",
 	"textures": {
 		"bread": "create_biotech:block/butter/bread",
-		"rope": "create_biotech:block/butter/rope",
 		"particle": "create_biotech:block/butter/bread"
 	},
 	"elements": [

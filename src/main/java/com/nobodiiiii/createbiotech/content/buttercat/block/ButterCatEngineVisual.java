@@ -20,6 +20,7 @@ import java.util.function.Consumer;
 public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntity> implements SimpleDynamicVisual {
     private final OrientedInstance cat;
     private final OrientedInstance bread;
+    private final OrientedInstance rope;
     private final OrientedInstance butter;
 
     private final Quaternionf blockOrientation;
@@ -43,6 +44,9 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
 
         bread = instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(ModPartialModels.BCE_EMPTY)).createInstance();
         bread.position(getVisualPosition()).rotation(blockOrientation).setChanged();
+
+        rope = instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(ModPartialModels.BCE_EMPTY)).createInstance();
+        rope.position(getVisualPosition()).rotation(blockOrientation).setChanged();
 
         butter = instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(ModPartialModels.BCE_EMPTY)).createInstance();
         butter.position(getVisualPosition()).rotation(blockOrientation).setChanged();
@@ -68,6 +72,7 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
 
         cat.rotation(dynamicRotation).setChanged();
         bread.rotation(dynamicRotation).setChanged();
+        rope.rotation(dynamicRotation).setChanged();
         butter.rotation(dynamicRotation).setChanged();
     }
     private void updateModels() {
@@ -83,6 +88,8 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
             instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(blockEntity.getBreadModel())).stealInstance(bread);
             bread.position(getVisualPosition()).rotation(blockOrientation).setChanged();
 
+            instancerProvider().instancer(InstanceTypes.ORIENTED, Models.partial(blockEntity.getRopeModel())).stealInstance(rope);
+            rope.position(getVisualPosition()).rotation(blockOrientation).setChanged();
         }
         if(currentButterLevel != blockEntity.getButterLevel()){
             currentButterLevel = blockEntity.getButterLevel();
@@ -97,12 +104,14 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
         relight(cat);
         relight(butter);
         relight(bread);
+        relight(rope);
     }
     @Override
     protected void _delete() {
         super._delete();
         cat.delete();
         bread.delete();
+        rope.delete();
         butter.delete();
     }
 
@@ -111,6 +120,7 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
     public void collectCrumblingInstances(Consumer<Instance> consumer) {
         super.collectCrumblingInstances(consumer);
         consumer.accept(bread);
+        consumer.accept(rope);
     }
 
     @Override

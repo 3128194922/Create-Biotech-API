@@ -12,6 +12,7 @@ import net.minecraft.world.entity.animal.CatVariant;
 public class ModPartialModels {
     public static final PartialModel BCE_EMPTY = create("butter_cat_engine/butter/empty");
     public static final PartialModel BCE_BREAD = create("butter_cat_engine/butter/bread");
+    public static final PartialModel BCE_ROPE = create("butter_cat_engine/butter/rope");
     public static final PartialModel BCE_BUTTER = create("butter_cat_engine/butter/butter");
     public static final PartialModel BCE_BUTTER_SMALL = create("butter_cat_engine/butter/butter_small");
     public static final PartialModel BCE_BUTTER_BIG = create("butter_cat_engine/butter/butter_big");

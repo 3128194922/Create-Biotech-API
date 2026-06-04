@@ -207,6 +207,9 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
     public PartialModel getBreadModel() {
         return hasBread()? ModPartialModels.BCE_BREAD:ModPartialModels.BCE_EMPTY;
     }
+    public PartialModel getRopeModel() {
+        return hasBread() ? ModPartialModels.BCE_ROPE : ModPartialModels.BCE_EMPTY;
+    }
     ///================collision================
     static class BCEValueBox extends ValueBoxTransform.Sided {
         @Override

@@ -63,6 +63,11 @@ public class ButterCatEngineRenderer  extends KineticBlockEntityRenderer<ButterC
         SuperByteBuffer bread = CachedBuffers.partialFacing(be.getBreadModel(), blockState, direction);
         bread.rotateCenteredDegrees(degree, direction);
         bread.light(light).overlay(overlay).renderInto(ms, buffer.getBuffer(RenderType.solid()));
+
+        //rope
+        SuperByteBuffer rope = CachedBuffers.partialFacing(be.getRopeModel(), blockState, direction);
+        rope.rotateCenteredDegrees(degree, direction);
+        rope.light(light).overlay(overlay).renderInto(ms, buffer.getBuffer(RenderType.solid()));
     }
 
     static float getAngleForBe(ButterCatEngineBlockEntity be, BlockPos pos, Axis axis, float partialTicks) {
