@@ -1,20 +1,11 @@
 package com.nobodiiiii.createbiotech.content.buttercat.block;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.simibubi.create.content.contraptions.bearing.WindmillBearingBlockEntity;
 import com.simibubi.create.content.kinetics.base.GeneratingKineticBlockEntity;
 import com.simibubi.create.foundation.blockEntity.behaviour.BlockEntityBehaviour;
-import com.simibubi.create.foundation.blockEntity.behaviour.ValueBoxTransform;
-import com.simibubi.create.foundation.blockEntity.behaviour.scrollValue.ScrollOptionBehaviour;
-import com.simibubi.create.foundation.utility.CreateLang;
 import com.nobodiiiii.createbiotech.content.buttercat.register.ModConfigs;
 import com.nobodiiiii.createbiotech.content.buttercat.register.ModPartialModels;
 import dev.engine_room.flywheel.lib.model.baked.PartialModel;
-import dev.engine_room.flywheel.lib.transform.TransformStack;
-import net.createmod.catnip.math.AngleHelper;
-import net.createmod.catnip.math.VecHelper;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -24,10 +15,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.CatVariant;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -35,7 +24,6 @@ import static com.simibubi.create.content.kinetics.base.HorizontalKineticBlock.H
 
 
 public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
-    protected ScrollOptionBehaviour<WindmillBearingBlockEntity.RotationDirection> movementDirection;
     protected ResourceKey<CatVariant> catVariant = CatVariant.TABBY;
     protected boolean bread =false;
     protected boolean infinite =false;
@@ -51,11 +39,6 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
     @Override
     public void addBehaviours(List<BlockEntityBehaviour> behaviours) {
         super.addBehaviours(behaviours);
-        movementDirection = new ScrollOptionBehaviour<>(WindmillBearingBlockEntity.RotationDirection.class,
-                CreateLang.translateDirect("contraptions.windmill.rotation_direction"), this,new BCEValueBox());
-        movementDirection.withCallback($ -> updateGeneratedRotation());
-
-        behaviours.add(movementDirection);
     }
     ///================getter/setter================
     public void addButterCount(int count) {
@@ -140,9 +123,9 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
     //应力生产速度，黄油输入16个后达到最大速度，超出部分继续累加在应力系数上
     @Override
     public float getGeneratedSpeed() {
-        if (isInfinite()) return 256 * getAngleSpeedDirection() ;
+        if (isInfinite()) return getDirectionalGeneratedSpeed(256);
         int speed = butterCount <= 16  ? butterCount * 16 : 256;
-        return speed * getAngleSpeedDirection();
+        return getDirectionalGeneratedSpeed(speed);
     }
     //应力系数
     @Override
@@ -152,10 +135,8 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
         this.lastCapacityProvided = capacity;
         return capacity;
     }
-    //引擎自己的旋转方向，明确返回 ±1
-    protected float getAngleSpeedDirection() {
-        WindmillBearingBlockEntity.RotationDirection rotationDirection = WindmillBearingBlockEntity.RotationDirection.values()[movementDirection.getValue()];
-        return (rotationDirection == WindmillBearingBlockEntity.RotationDirection.CLOCKWISE ? 1 : -1);
+    protected float getDirectionalGeneratedSpeed(float speed) {
+        return convertToDirection(speed, getBlockState().getValue(HORIZONTAL_FACING));
     }
     ///================serialize================
     @Override
@@ -208,40 +189,6 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
     }
     public PartialModel getRopeModel() {
         return ModPartialModels.BCE_EMPTY;
-    }
-    ///================collision================
-    static class BCEValueBox extends ValueBoxTransform.Sided {
-        @Override
-        protected Vec3 getSouthLocation() {
-            return VecHelper.voxelSpace(8, 8, 12.5);
-        }
-
-        @Override
-        public Vec3 getLocalOffset(LevelAccessor level, BlockPos pos, BlockState state) {
-            Direction facing = state.getValue(HORIZONTAL_FACING);
-            return super.getLocalOffset(level, pos, state).add(Vec3.atLowerCornerOf(facing.getNormal())
-                    .scale(-1 / 16f));
-        }
-
-        @Override
-        public void rotate(LevelAccessor level, BlockPos pos, BlockState state, PoseStack ms) {
-            super.rotate(level, pos, state, ms);
-            Direction facing = state.getValue(HORIZONTAL_FACING);
-
-            if (getSide() != Direction.UP)
-                return;
-            TransformStack.of(ms)
-                    .rotateZDegrees(-AngleHelper.horizontalAngle(facing) + 180);
-        }
-
-        @Override
-        protected boolean isSideActive(BlockState state, Direction direction) {
-            Direction facing = state.getValue(HORIZONTAL_FACING);
-            if (facing.getAxis() != Direction.Axis.Y && direction == Direction.DOWN)
-                return false;
-            return direction.getAxis() != facing.getAxis();
-        }
-
     }
     public int getMaxButterCount(){
         return ModConfigs.COMMON.maxButterCount.get();

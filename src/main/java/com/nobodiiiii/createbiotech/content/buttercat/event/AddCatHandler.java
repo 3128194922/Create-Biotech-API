@@ -71,15 +71,9 @@ public class AddCatHandler {
     }
 
     private static void replaceBlock(Level level,Player player, BlockPos pos, Cat cat) {
-
-        BlockState newBlockState =  ModBlocks.BUTTER_CAT_ENGINE.getDefaultState();
-
-        if (level.getBlockState(pos).getValue(BlockStateProperties.AXIS) == Direction.Axis.X)
-            newBlockState= newBlockState.setValue(HORIZONTAL_FACING, Direction.EAST);
-        else if(level.getBlockState(pos).getValue(BlockStateProperties.AXIS) == Direction.Axis.Z)
-            newBlockState= newBlockState.setValue(HORIZONTAL_FACING, Direction.NORTH);
-        else
-            newBlockState= newBlockState.setValue(HORIZONTAL_FACING,  player.getDirection().getOpposite());
+        Direction.Axis shaftAxis = level.getBlockState(pos).getValue(BlockStateProperties.AXIS);
+        BlockState newBlockState = ModBlocks.BUTTER_CAT_ENGINE.getDefaultState()
+            .setValue(HORIZONTAL_FACING, determineFacingFromPlayerContext(player, shaftAxis));
 
         level.setBlockAndUpdate(pos,newBlockState);
 
@@ -89,6 +83,34 @@ public class AddCatHandler {
         }
 
         ClientEffect.create(level,pos, ClientEffect.EffectType.CAT);
+    }
+
+    private static Direction determineFacingFromPlayerContext(Player player, Direction.Axis shaftAxis) {
+        if (player == null) {
+            return shaftAxis == Direction.Axis.X ? Direction.EAST : Direction.NORTH;
+        }
+
+        if (shaftAxis == Direction.Axis.Y) {
+            return player.getDirection().getOpposite();
+        }
+
+        Direction preferredFacing = player.getDirection().getOpposite();
+        if (preferredFacing.getAxis() == shaftAxis) {
+            return preferredFacing;
+        }
+
+        for (Direction direction : Direction.orderedByNearest(player)) {
+            if (direction.getAxis().isVertical()) {
+                continue;
+            }
+
+            Direction candidate = direction.getOpposite();
+            if (candidate.getAxis() == shaftAxis) {
+                return candidate;
+            }
+        }
+
+        return shaftAxis == Direction.Axis.X ? Direction.EAST : Direction.NORTH;
     }
 }
 

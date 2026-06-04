@@ -46,8 +46,6 @@ public class ButterCatEngineRenderer  extends KineticBlockEntityRenderer<ButterC
         Axis axis = getRotationAxisOf(be);
         float angle = getAngleForBe(be, be.getBlockPos(), axis, partialTicks);
         float degree = (float) Math.toDegrees(angle);
-        if (direction == Direction.NORTH || direction == Direction.WEST)
-            degree = -degree;
 
         //cat
         SuperByteBuffer cat = CachedBuffers.partialFacing(be.getCatModel(), blockState, direction);

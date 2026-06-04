@@ -180,6 +180,14 @@ public class ButterCatEngineBlock extends HorizontalKineticBlock implements  IBE
     }
 
     @Override
+    protected boolean areStatesKineticallyEquivalent(BlockState oldState, BlockState newState) {
+        if (!super.areStatesKineticallyEquivalent(oldState, newState)) {
+            return false;
+        }
+        return oldState.getValue(HORIZONTAL_FACING) == newState.getValue(HORIZONTAL_FACING);
+    }
+
+    @Override
     public Class<ButterCatEngineBlockEntity> getBlockEntityClass() {
         return ButterCatEngineBlockEntity.class;
     }
