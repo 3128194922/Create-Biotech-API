@@ -57,9 +57,11 @@ public class ButterCatEngineVisual extends ShaftVisual<ButterCatEngineBlockEntit
     }
 
     private void rotateModels(float pt) {
-
-        float interpolatedAngle = blockEntity.getInterpolatedAngle(pt - 1);
-
+        float angle = ButterCatEngineRenderer.getAngleForBe(blockEntity, blockEntity.getBlockPos(), rotationAxis(), pt);
+        float interpolatedAngle = (float) Math.toDegrees(angle);
+        Direction facing = blockState.getValue(ButterCatEngineBlock.HORIZONTAL_FACING);
+        if (facing == Direction.NORTH || facing == Direction.WEST)
+            interpolatedAngle = -interpolatedAngle;
         Quaternionf dynamicRotation = rotationAxis.rotationDegrees(interpolatedAngle);
 
         dynamicRotation.mul(blockOrientation);

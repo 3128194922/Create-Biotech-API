@@ -20,7 +20,6 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Cat;
 import net.minecraft.world.entity.animal.CatVariant;
@@ -44,7 +43,6 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
     protected int butterCount = 0;
     protected int overflowCount = 0;
     protected int cd = 0;
-    protected float angle = 0;
     protected Cat cat;
 
     public ButterCatEngineBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
@@ -124,7 +122,6 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
 
     public void tick(){
         super.tick();
-        angle = ( angle +  getAngularSpeed())% 360;
         if(isInfinite())return;
         if(butterCount > 0){
             cd++;
@@ -161,10 +158,6 @@ public class  ButterCatEngineBlockEntity  extends GeneratingKineticBlockEntity {
         WindmillBearingBlockEntity.RotationDirection rotationDirection = WindmillBearingBlockEntity.RotationDirection.values()[movementDirection.getValue()];
         return (rotationDirection == WindmillBearingBlockEntity.RotationDirection.CLOCKWISE ? 1 : -1);
     }
-    //将最终速度转换为角度速度:RPM → 度/tick
-        public float getAngularSpeed() {return convertToAngular(getSpeed());}
-    //客户端渲染使用，每个tick中的gpu使用的角度，用于renderer和visual
-    public float getInterpolatedAngle(float partialTicks){return Mth.lerp(partialTicks, angle, angle +getAngularSpeed());}
     ///================serialize================
     @Override
     protected void write(CompoundTag compound,boolean clientPacket) {

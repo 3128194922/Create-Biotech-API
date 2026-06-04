@@ -1,14 +1,20 @@
 package com.nobodiiiii.createbiotech.content.buttercat.block;
 
 import com.mojang.blaze3d.vertex.PoseStack;
+import com.nobodiiiii.createbiotech.mixin.client.LevelRendererAccessor;
 import com.simibubi.create.content.kinetics.base.KineticBlockEntityRenderer;
 import dev.engine_room.flywheel.api.visualization.VisualizationManager;
+import net.createmod.catnip.animation.AnimationTickHolder;
 import net.createmod.catnip.render.CachedBuffers;
 import net.createmod.catnip.render.SuperByteBuffer;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Direction.Axis;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static net.minecraft.world.level.block.state.properties.BlockStateProperties.HORIZONTAL_FACING;
@@ -37,23 +43,39 @@ public class ButterCatEngineRenderer  extends KineticBlockEntityRenderer<ButterC
 
         BlockState blockState = be.getBlockState();
         Direction direction = blockState.getValue(HORIZONTAL_FACING);
-        float degree = be.getInterpolatedAngle(partialTicks-1);
-        if(direction == Direction.NORTH || direction == Direction.WEST) degree = -degree;
+        Axis axis = getRotationAxisOf(be);
+        float angle = getAngleForBe(be, be.getBlockPos(), axis, partialTicks);
+        float degree = (float) Math.toDegrees(angle);
+        if (direction == Direction.NORTH || direction == Direction.WEST)
+            degree = -degree;
 
         //cat
         SuperByteBuffer cat = CachedBuffers.partialFacing(be.getCatModel(), blockState, direction);
-        cat.rotateCenteredDegrees(degree,direction);
+        cat.rotateCenteredDegrees(degree, direction);
         cat.light(light).overlay(overlay).renderInto(ms, buffer.getBuffer(RenderType.cutoutMipped()));
 
         //butter
         SuperByteBuffer butter = CachedBuffers.partialFacing(be.getButterModel(), blockState, direction);
-        butter.rotateCenteredDegrees(degree,direction);
+        butter.rotateCenteredDegrees(degree, direction);
         butter.light(light).overlay(overlay).renderInto(ms, buffer.getBuffer(RenderType.solid()));
 
         //bread
         SuperByteBuffer bread = CachedBuffers.partialFacing(be.getBreadModel(), blockState, direction);
-        bread.rotateCenteredDegrees(degree,direction);
+        bread.rotateCenteredDegrees(degree, direction);
         bread.light(light).overlay(overlay).renderInto(ms, buffer.getBuffer(RenderType.solid()));
+    }
+
+    static float getAngleForBe(ButterCatEngineBlockEntity be, BlockPos pos, Axis axis, float partialTicks) {
+        float time = getKineticRenderTicks(be.getLevel(), partialTicks);
+        float offset = getRotationOffsetForPosition(be, pos, axis);
+        return ((time * be.getSpeed() * 3f / 10 + offset) % 360) / 180 * (float) Math.PI;
+    }
+
+    static float getKineticRenderTicks(Level level, float partialTicks) {
+        if (level != null && VisualizationManager.supportsVisualization(level)
+            && Minecraft.getInstance().levelRenderer instanceof LevelRendererAccessor accessor)
+            return accessor.create_biotech$getTicks() + partialTicks;
+        return AnimationTickHolder.getRenderTime(level);
     }
 
 }
