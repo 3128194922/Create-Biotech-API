@@ -308,11 +308,10 @@ public class CreateBiotechClient {
 		registerCreateStyleTooltip(CBItems.MEDIUM_EXPERIENCE_BUD.get());
 		registerCreateStyleTooltip(CBItems.LARGE_EXPERIENCE_BUD.get());
 		registerCreateStyleTooltip(CBItems.EXPERIENCE_CLUSTER.get());
-		registerCreateStyleTooltip(CBItems.EXPERIENCE_TANK.get());
-		registerCreateStyleTooltip(CBItems.EXPERIENCE_PIPE.get());
 		registerCreateStyleTooltip(CBItems.PETRI_DISH.get());
 		registerCreateStyleTooltip(CBItems.CARDBOARD_BOX.get());
 		registerCreateStyleTooltip(CBItems.LARGE_CARDBOARD_BOX.get());
+		registerCreateStyleTooltip(CBItems.SMART_SUPER_GLUE.get());
 		registerCreateStyleTooltip(CBItems.FIXED_CARROT_FISHING_ROD.get());
 		registerCreateStyleTooltip(CBItems.WIRELESS_TERMINAL.get());
 		CBItems.BUFFER_PADS.values()

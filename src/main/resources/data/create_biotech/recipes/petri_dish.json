@@ -2,9 +2,9 @@
   "type": "minecraft:crafting_shaped",
   "category": "misc",
   "pattern": [
-    "GGG",
+    "   ",
     "GTG",
-    "PBP"
+    "ABA"
   ],
   "key": {
     "G": {
@@ -13,11 +13,11 @@
     "T": {
       "item": "minecraft:totem_of_undying"
     },
-    "P": {
-      "item": "create:precision_mechanism"
+    "A": {
+      "item": "create_biotech:asurine_alloy"
     },
     "B": {
-      "item": "create:brass_casing"
+      "item": "create_biotech:biotech_casing"
     }
   },
   "result": {
