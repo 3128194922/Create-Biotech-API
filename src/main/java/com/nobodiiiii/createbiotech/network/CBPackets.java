@@ -9,6 +9,7 @@ import com.nobodiiiii.createbiotech.content.biopackager.BioPackagerContraptionAn
 import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastBalloonMagnetTargetPacket;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltEntityAnimationPacket;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltSurfaceMovementPacket;
+import com.nobodiiiii.createbiotech.content.shulkerpackager.ShulkerPackagerPlacementPacket;
 import com.nobodiiiii.createbiotech.content.smartglue.SmartSuperGlueRemovalPacket;
 import com.nobodiiiii.createbiotech.content.smartglue.SmartSuperGlueSelectionPacket;
 
@@ -22,7 +23,7 @@ import net.minecraftforge.network.simple.SimpleChannel;
 
 public class CBPackets {
 
-	private static final String NETWORK_VERSION = "3";
+	private static final String NETWORK_VERSION = "4";
 	private static final SimpleChannel CHANNEL = NetworkRegistry.ChannelBuilder.named(CreateBiotech.asResource("main"))
 		.serverAcceptedVersions(NETWORK_VERSION::equals)
 		.clientAcceptedVersions(NETWORK_VERSION::equals)
@@ -51,6 +52,13 @@ public class CBPackets {
 		register(SmartSuperGlueRemovalPacket.class, SmartSuperGlueRemovalPacket::new,
 			SmartSuperGlueRemovalPacket::write, SmartSuperGlueRemovalPacket::handle,
 			NetworkDirection.PLAY_TO_SERVER);
+		register(ShulkerPackagerPlacementPacket.class, ShulkerPackagerPlacementPacket::new,
+			ShulkerPackagerPlacementPacket::write, ShulkerPackagerPlacementPacket::handle,
+			NetworkDirection.PLAY_TO_SERVER);
+		register(ShulkerPackagerPlacementPacket.ClientBoundRequest.class,
+			ShulkerPackagerPlacementPacket.ClientBoundRequest::new,
+			ShulkerPackagerPlacementPacket.ClientBoundRequest::write,
+			ShulkerPackagerPlacementPacket.ClientBoundRequest::handle, NetworkDirection.PLAY_TO_CLIENT);
 	}
 
 	public static void sendToServer(Object packet) {
@@ -59,6 +67,10 @@ public class CBPackets {
 
 	public static void sendToTrackingEntity(Object packet, Entity entity) {
 		CHANNEL.send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), packet);
+	}
+
+	public static void sendToPlayer(Object packet, net.minecraft.server.level.ServerPlayer player) {
+		CHANNEL.send(PacketDistributor.PLAYER.with(() -> player), packet);
 	}
 
 	private static <T> void register(Class<T> type, Function<FriendlyByteBuf, T> decoder,

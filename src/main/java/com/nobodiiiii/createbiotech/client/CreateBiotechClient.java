@@ -26,6 +26,7 @@ import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltRenderer;
 import com.nobodiiiii.createbiotech.content.powerbelt.PowerBeltSpriteShifts;
 import com.nobodiiiii.createbiotech.content.petridish.PetriDishRenderer;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatRenderer;
+import com.nobodiiiii.createbiotech.content.shulkerpackager.ShulkerPackagerConnectionHandler;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltHelper;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltRenderer;
 import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltSpriteShifts;
@@ -37,6 +38,8 @@ import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointRendere
 import com.nobodiiiii.createbiotech.content.wirelessterminal.WirelessStockKeeperRequestMenu;
 import com.nobodiiiii.createbiotech.content.wirelessterminal.WirelessStockKeeperRequestScreen;
 import com.simibubi.create.content.kinetics.transmission.SplitShaftRenderer;
+import com.simibubi.create.content.logistics.packager.PackagerRenderer;
+import com.simibubi.create.content.logistics.packager.PackagerVisual;
 import com.nobodiiiii.createbiotech.foundation.ponder.CreateBiotechPonderPlugin;
 import com.nobodiiiii.createbiotech.client.particle.StraightEnchantParticle;
 import com.nobodiiiii.createbiotech.client.render.SlimeMimicRenderLayer;
@@ -122,6 +125,7 @@ public class CreateBiotechClient {
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.GHAST_HOT_AIR_BALLOON_ASSEMBLY_STATION.get(),
 			GhastHotAirBalloonAssemblyStationRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.BIO_PACKAGER.get(), BioPackagerRenderer::new);
+		event.registerBlockEntityRenderer(CBBlockEntityTypes.SHULKER_PACKAGER.get(), PackagerRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.BONE_RATCHET.get(), BoneRatchetRenderer::new);
 		event.registerBlockEntityRenderer(CBBlockEntityTypes.PETRI_DISH.get(), PetriDishRenderer::new);
 		event.registerEntityRenderer(CBEntityTypes.GHAST_HOT_AIR_BALLOON.get(),
@@ -198,6 +202,10 @@ public class CreateBiotechClient {
 				.factory(BioPackagerVisual::new)
 				.neverSkipVanillaRender()
 				.apply();
+			SimpleBlockEntityVisualizer.builder(CBBlockEntityTypes.SHULKER_PACKAGER.get())
+				.factory((context, blockEntity, partialTick) -> new PackagerVisual<>(context, blockEntity, partialTick))
+				.neverSkipVanillaRender()
+				.apply();
 			SimpleBlockEntityVisualizer.builder(CBBlockEntityTypes.BONE_RATCHET.get())
 				.factory((context, blockEntity, partialTick) -> new EncasedCogVisual(context, blockEntity, false,
 					partialTick, Models.partial(BoneRatchetRenderer.COGWHEEL)))
@@ -206,6 +214,7 @@ public class CreateBiotechClient {
 				.factory(SplitShaftVisual::new)
 				.apply();
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.BIO_PACKAGER.get(), RenderType.cutoutMipped());
+			ItemBlockRenderTypes.setRenderLayer(CBBlocks.SHULKER_PACKAGER.get(), RenderType.cutoutMipped());
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.EXPERIENCE_PUMP.get(), RenderType.cutoutMipped());
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.MAGMA_BELT.get(), RenderType.cutoutMipped());
 			ItemBlockRenderTypes.setRenderLayer(CBBlocks.POWER_BELT.get(), RenderType.cutoutMipped());
@@ -314,6 +323,7 @@ public class CreateBiotechClient {
 		registerCreateStyleTooltip(CBItems.SMART_SUPER_GLUE.get());
 		registerCreateStyleTooltip(CBItems.FIXED_CARROT_FISHING_ROD.get());
 		registerCreateStyleTooltip(CBItems.WIRELESS_TERMINAL.get());
+		registerCreateStyleTooltip(CBItems.SHULKER_PACKAGER.get());
 		CBItems.BUFFER_PADS.values()
 			.forEach(entry -> registerCreateStyleTooltip(entry.get()));
 	}

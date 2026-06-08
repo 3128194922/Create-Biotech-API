@@ -29,6 +29,7 @@ import com.nobodiiiii.createbiotech.content.slimebelt.SlimeBeltBlock;
 import com.nobodiiiii.createbiotech.content.slimeclutch.SlimeClutchBlock;
 import com.nobodiiiii.createbiotech.content.squidprinter.SquidPrinterBlock;
 import com.nobodiiiii.createbiotech.content.schrodingerscat.SchrodingersCatBlock;
+import com.nobodiiiii.createbiotech.content.shulkerpackager.ShulkerPackagerBlock;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableBlock;
 import com.nobodiiiii.createbiotech.content.spiderassemblytable.SpiderAssemblyTableCogBlock;
 import com.nobodiiiii.createbiotech.content.universaljoint.UniversalJointBlock;
@@ -271,6 +272,13 @@ public class CBBlocks {
 
 	public static final RegistryObject<BioPackagerBlock> BIO_PACKAGER = BLOCKS.register("bio_packager",
 		() -> new BioPackagerBlock(Block.Properties.of()
+			.sound(SoundType.WOOD)
+			.strength(2.0f)
+			.mapColor(MapColor.WOOD)
+			.noOcclusion()));
+
+	public static final RegistryObject<ShulkerPackagerBlock> SHULKER_PACKAGER = BLOCKS.register("shulker_packager",
+		() -> new ShulkerPackagerBlock(Block.Properties.of()
 			.sound(SoundType.WOOD)
 			.strength(2.0f)
 			.mapColor(MapColor.WOOD)
