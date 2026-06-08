@@ -1736,12 +1736,57 @@ public class CreeperBlastChamberBlockEntity extends SyncedBlockEntity implements
 			double z = centerZ + (level.random.nextDouble() * 2d - 1d) * CLIENT_RETURN_EXTRA_EXPLOSION_RADIUS;
 			spawnRandomizedReturnExplosionParticle(level, x, centerY, z);
 		}
+
+		spawnClientShellSurfaceExplosionEffect(level, centerY);
 	}
 
 	private void spawnRandomizedReturnExplosionParticle(Level level, double x, double y, double z) {
 		double sizeParam = Mth.lerp(level.random.nextDouble(),
 			CLIENT_RETURN_EXPLOSION_SIZE_PARAM_MIN, CLIENT_RETURN_EXPLOSION_SIZE_PARAM_MAX);
 		level.addAlwaysVisibleParticle(ParticleTypes.EXPLOSION, true, x, y, z, sizeParam, 0, 0);
+	}
+
+	private void spawnClientShellSurfaceExplosionEffect(Level level, double centerY) {
+		if (structureOrigin == null || structureSize <= 0)
+			return;
+
+		for (int yOffset = 1; yOffset <= 2; yOffset++) {
+			for (int xOffset = 0; xOffset < structureSize; xOffset++) {
+				for (int zOffset = 0; zOffset < structureSize; zOffset++) {
+					boolean onXWall = xOffset == 0 || xOffset == structureSize - 1;
+					boolean onZWall = zOffset == 0 || zOffset == structureSize - 1;
+					if (onXWall == onZWall)
+						continue;
+
+					BlockPos pos = structureOrigin.offset(xOffset, yOffset, zOffset);
+					BlockState state = level.getBlockState(pos);
+					if (!isClientOuterShellBlock(state))
+						continue;
+
+					double normalX = xOffset == 0 ? -1d : xOffset == structureSize - 1 ? 1d : 0d;
+					double normalZ = zOffset == 0 ? -1d : zOffset == structureSize - 1 ? 1d : 0d;
+					double x = pos.getX() + 0.5d + normalX * 0.55d;
+					double y = Mth.lerp(level.random.nextDouble(), pos.getY() + 0.2d, pos.getY() + 0.8d);
+					double z = pos.getZ() + 0.5d + normalZ * 0.55d;
+					spawnRandomizedReturnExplosionParticle(level, x, y, z);
+				}
+			}
+		}
+
+		double roofX = structureOrigin.getX() + structureSize / 2d;
+		double roofZ = structureOrigin.getZ() + structureSize / 2d;
+		spawnRandomizedReturnExplosionParticle(level, roofX, centerY + 0.35d, roofZ);
+	}
+
+	private boolean isClientOuterShellBlock(BlockState state) {
+		if (state.isAir())
+			return false;
+		if (state.getBlock() instanceof CreeperBlastChamberBlock)
+			return true;
+		return state.is(CBBlocks.EXPLOSION_PROOF_CASING.get())
+			|| state.is(CBBlocks.BLAST_PROOF_GLASS.get())
+			|| state.is(CBBlocks.BLAST_PROOF_FRAMED_GLASS.get())
+			|| state.is(CBBlocks.BLAST_PROOF_CHAIN_DRIVE.get());
 	}
 
 	private void resetClientWorkingCreeperEffects() {
