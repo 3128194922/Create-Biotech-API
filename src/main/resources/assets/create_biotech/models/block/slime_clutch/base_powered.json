@@ -1,7 +1,0 @@
-{
-  "parent": "create:block/gearshift/block",
-  "textures": {
-    "0": "create_biotech:block/slime_clutch_on",
-    "particle": "create_biotech:block/slime_clutch_on"
-  }
-}

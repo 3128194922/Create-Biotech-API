@@ -17,11 +17,6 @@ java {
     withSourcesJar()
 }
 
-mixin {
-    add sourceSets.main, "create_biotech.refmap.json"
-    config "create_biotech.mixins.json"
-}
-
 legacyForge {
     version = "${minecraft_version}-${forge_version}"
 
@@ -67,9 +62,6 @@ legacyForge {
 repositories {
     maven { url = 'https://maven.createmod.net' }
     maven { url = 'https://maven.ithundxr.dev/mirror' }
-    maven { url = 'https://maven.minecraftforge.net/' }
-    maven { url = 'https://maven.blamejared.com' }
-    maven { url = 'https://api.modrinth.com/maven' }
     mavenCentral()
 }
 
@@ -77,23 +69,7 @@ dependencies {
     modImplementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") {
         transitive = false
     }
-
     modImplementation("com.tterrag.registrate:Registrate:${registrate_version}")
-    modCompileOnly("dev.engine-room.flywheel:flywheel-forge-api-${minecraft_version}:${flywheel_version}")
-    modRuntimeOnly("dev.engine-room.flywheel:flywheel-forge-${minecraft_version}:${flywheel_version}")
-    modRuntimeOnly("dev.engine-room.vanillin:vanillin-forge-${minecraft_version}:${vanillin_version}")
-    modImplementation("net.createmod.ponder:Ponder-Forge-${minecraft_version}:${ponder_version}")
-    modCompileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
-    modCompileOnly("mezz.jei:jei-${minecraft_version}-forge-api:${jei_version}")
-    modRuntimeOnly("mezz.jei:jei-${minecraft_version}-forge:${jei_version}")
-    modCompileOnly("maven.modrinth:jade:${jade_version}")
-    modImplementation("io.github.llamalad7:mixinextras-forge:${mixinextras_version}")
-    compileOnly("io.github.llamalad7:mixinextras-common:${mixinextras_version}")
-
-    if (!Boolean.getBoolean("idea.sync.active")) {
-        annotationProcessor "org.spongepowered:mixin:0.8.5:processor"
-        annotationProcessor "io.github.llamalad7:mixinextras-common:${mixinextras_version}"
-    }
 }
 
 processResources {
@@ -120,47 +96,6 @@ tasks.withType(JavaCompile).configureEach {
     options.release = 17
 }
 
-def configureQuickPlayClientTask = { Exec task, boolean onlineBuild ->
-    task.group = 'mod development'
-    task.description = onlineBuild
-            ? 'Runs test.py with an online Gradle build, copies the mod jar, and quickplays the local client.'
-            : 'Runs test.py with an offline Gradle build, copies the mod jar, and quickplays the local client.'
-    task.workingDir = projectDir
-
-    def command = [findProperty('pythonExecutable') ?: 'python', 'test.py']
-    if (onlineBuild) {
-        command += ['--online-build']
-    }
-    if (hasProperty('instance')) {
-        command += ['--instance', property('instance').toString()]
-    }
-    if (hasProperty('world')) {
-        command += ['--world', property('world').toString()]
-    }
-    if (hasProperty('skipBuild')) {
-        command += ['--skip-build']
-    }
-    if (hasProperty('noCopy')) {
-        command += ['--no-copy']
-    }
-    if (hasProperty('width')) {
-        command += ['--width', property('width').toString()]
-    }
-    if (hasProperty('height')) {
-        command += ['--height', property('height').toString()]
-    }
-
-    task.commandLine command
-}
-
-tasks.register('quickPlayClient', Exec) {
-    configureQuickPlayClientTask(delegate, false)
-}
-
-tasks.register('quickPlayClientOnline', Exec) {
-    configureQuickPlayClientTask(delegate, true)
-}
-
 jar {
     manifest {
         attributes([
@@ -170,8 +105,7 @@ jar {
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
                 'Implementation-Vendor'   : mod_authors,
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
-                'MixinConfigs'            : 'create_biotech.mixins.json'
+                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
         ])
     }
 }

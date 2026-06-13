@@ -1,6 +1,0 @@
-{
-  "parent": "minecraft:block/cross",
-  "textures": {
-    "cross": "create_biotech:block/small_experience_bud"
-  }
-}

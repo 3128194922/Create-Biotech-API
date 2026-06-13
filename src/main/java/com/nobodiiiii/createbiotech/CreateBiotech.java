@@ -1,80 +1,199 @@
 package com.nobodiiiii.createbiotech;
 
-import com.nobodiiiii.createbiotech.content.fixedcarrotfishingrod.FixedCarrotFishingRodGoalHandler;
-import com.nobodiiiii.createbiotech.content.shulkerpackager.ShulkerPackagerArmInteractions;
-import com.nobodiiiii.createbiotech.content.buttercat.ButterCatModule;
-import com.nobodiiiii.createbiotech.content.bufferpad.BufferPadMovementBehaviour;
-import com.nobodiiiii.createbiotech.content.explosionproofitemvault.ExplosionProofItemVaultCompat;
-import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastBalloonRopeShearsInteraction;
-import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHelmMovingInteraction;
-import com.nobodiiiii.createbiotech.content.ghasthotairballoon.GhastHelmMovementBehaviour;
-import com.nobodiiiii.createbiotech.network.CBPackets;
-import com.nobodiiiii.createbiotech.registry.CBBlockEntityTypes;
-import com.nobodiiiii.createbiotech.registry.CBBlocks;
-import com.nobodiiiii.createbiotech.registry.CBContraptionTypes;
-import com.nobodiiiii.createbiotech.registry.CBCreativeModeTabs;
-import com.nobodiiiii.createbiotech.registry.CBEntityTypes;
-import com.nobodiiiii.createbiotech.registry.CBFluids;
-import com.nobodiiiii.createbiotech.registry.CBItems;
-import com.nobodiiiii.createbiotech.registry.CBMenuTypes;
-import com.nobodiiiii.createbiotech.registry.CBParticleTypes;
-import com.nobodiiiii.createbiotech.registry.CBRecipeTypes;
-import com.simibubi.create.AllBlocks;
-import com.simibubi.create.api.behaviour.movement.MovementBehaviour;
-import com.simibubi.create.api.behaviour.interaction.MovingInteractionBehaviour;
-import com.simibubi.create.content.decoration.encasing.EncasingRegistry;
+import java.util.List;
+import java.util.UUID;
 
+import com.simibubi.create.AllEntityTypes;
+import com.simibubi.create.AllItems;
+import com.simibubi.create.content.contraptions.AbstractContraptionEntity;
+import com.simibubi.create.content.contraptions.Contraption;
+import com.simibubi.create.content.contraptions.OrientedContraptionEntity;
+import com.simibubi.create.content.contraptions.mounted.MinecartContraptionItem;
+
+import net.minecraft.core.Direction;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.DyeColor;
-import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.TamableAnimal;
+import net.minecraft.world.entity.animal.horse.AbstractHorse;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.entity.player.PlayerInteractEvent;
+import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
-import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
-import net.minecraftforge.registries.RegisterEvent;
 
 @Mod(CreateBiotech.MOD_ID)
 public class CreateBiotech {
 	public static final String MOD_ID = "create_biotech";
 
 	public CreateBiotech() {
-		IEventBus modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
-		CBBlocks.register(modEventBus);
-		CBItems.register(modEventBus);
-		CBFluids.register(modEventBus);
-		CBCreativeModeTabs.register(modEventBus);
-		CBBlockEntityTypes.register(modEventBus);
-		CBEntityTypes.register(modEventBus);
-		CBMenuTypes.register(modEventBus);
-		CBParticleTypes.register(modEventBus);
-		CBRecipeTypes.register(modEventBus);
-		ButterCatModule.init(modEventBus);
-		ShulkerPackagerArmInteractions.register();
-		modEventBus.addListener(CreateBiotech::onCommonSetup);
-		modEventBus.addListener(CreateBiotech::onRegister);
-		CBPackets.register();
-		FixedCarrotFishingRodGoalHandler.register();
-	}
-
-	private static void onCommonSetup(FMLCommonSetupEvent event) {
-		event.enqueueWork(() -> {
-			ExplosionProofItemVaultCompat.register();
-			EncasingRegistry.addVariant(CBBlocks.EXPERIENCE_PIPE.get(), CBBlocks.ENCASED_EXPERIENCE_PIPE.get());
-			MovementBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovementBehaviour());
-			BufferPadMovementBehaviour bufferPadMovementBehaviour = new BufferPadMovementBehaviour();
-			for (DyeColor color : DyeColor.values())
-				MovementBehaviour.REGISTRY.register(CBBlocks.BUFFER_PADS.get(color).get(), bufferPadMovementBehaviour);
-			MovingInteractionBehaviour.REGISTRY.register(CBBlocks.GHAST_HELM.get(), new GhastHelmMovingInteraction());
-			GhastBalloonRopeShearsInteraction ghastBalloonRopeShears = new GhastBalloonRopeShearsInteraction();
-			MovingInteractionBehaviour.REGISTRY.register(AllBlocks.ROPE.get(), ghastBalloonRopeShears);
-			MovingInteractionBehaviour.REGISTRY.register(AllBlocks.PULLEY_MAGNET.get(), ghastBalloonRopeShears);
-		});
-	}
-
-	private static void onRegister(RegisterEvent event) {
-		CBContraptionTypes.init();
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	public static ResourceLocation asResource(String path) {
 		return new ResourceLocation(MOD_ID, path);
+	}
+
+	@SubscribeEvent
+	public void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+		processInteraction(event.getEntity(), event.getTarget(), event.getHand(), event);
+	}
+
+	@SubscribeEvent
+	public void onEntityInteractSpecific(PlayerInteractEvent.EntityInteractSpecific event) {
+		processInteraction(event.getEntity(), event.getTarget(), event.getHand(), event);
+	}
+
+	private void processInteraction(Player player, Entity target, InteractionHand hand,
+									PlayerInteractEvent event) {
+		if (player == null || target == null)
+			return;
+		ItemStack held = player.getItemInHand(hand);
+
+		if (target instanceof LivingEntity livingTarget && !(target instanceof Player)) {
+			if (held.getItem() instanceof MinecartContraptionItem) {
+				handleAttachContraption(event, player, livingTarget, held);
+				return;
+			}
+		}
+
+		if (AllItems.WRENCH.isIn(held)) {
+			handleWrenchPickup(event, player, target);
+		}
+	}
+
+	private void handleAttachContraption(PlayerInteractEvent event, Player player,
+										 LivingEntity creature, ItemStack held) {
+		Level level = event.getLevel();
+		if (level.isClientSide)
+			return;
+
+		if (!player.isCreative() && !isOwnedBy(creature, player))
+			return;
+
+		CompoundTag tag = held.getOrCreateTag();
+		if (!tag.contains("Contraption"))
+			return;
+
+		for (Entity passenger : creature.getPassengers()) {
+			if (passenger instanceof AbstractContraptionEntity)
+				return;
+		}
+
+		CompoundTag contraptionTag = tag.getCompound("Contraption");
+		Contraption contraption = Contraption.fromNBT(level, contraptionTag, false);
+
+		if (contraption == null)
+			return;
+
+		contraption.stalled = false;
+		contraption.disassembled = false;
+
+		Direction initialOrientation = readDirection(contraptionTag, "InitialOrientation");
+		OrientedContraptionEntity contraptionEntity;
+
+		try {
+			contraptionEntity = OrientedContraptionEntity.createAtYaw(level, contraption,
+				initialOrientation, creature.getYRot());
+		} catch (NullPointerException e) {
+			contraptionEntity = new OrientedContraptionEntity(AllEntityTypes.ORIENTED_CONTRAPTION.get(), level);
+			setContraptionViaReflection(contraptionEntity, contraption);
+			contraptionEntity.targetYaw = creature.getYRot();
+			contraptionEntity.yaw = creature.getYRot();
+			contraptionEntity.prevYaw = creature.getYRot();
+		}
+
+		contraptionEntity.setPos(creature.position());
+		contraptionEntity.startRiding(creature);
+		level.addFreshEntity(contraptionEntity);
+
+		if (!player.isCreative())
+			held.shrink(1);
+
+		event.setCancellationResult(InteractionResult.SUCCESS);
+		event.setCanceled(true);
+	}
+
+	private boolean isOwnedBy(LivingEntity creature, Player player) {
+		UUID playerId = player.getUUID();
+		if (creature instanceof TamableAnimal tamable) {
+			return tamable.isTame() && playerId.equals(tamable.getOwnerUUID());
+		}
+		if (creature instanceof AbstractHorse horse) {
+			UUID owner = horse.getOwnerUUID();
+			return owner != null && owner.equals(playerId);
+		}
+		return false;
+	}
+
+	private void setContraptionViaReflection(OrientedContraptionEntity entity, Contraption contraption) {
+		try {
+			java.lang.reflect.Method method = AbstractContraptionEntity.class
+				.getDeclaredMethod("setContraption", Contraption.class);
+			method.setAccessible(true);
+			method.invoke(entity, contraption);
+		} catch (Exception ignored) {
+		}
+	}
+
+	private void handleWrenchPickup(PlayerInteractEvent event, Player player, Entity target) {
+		Entity checkEntity = target;
+		if (checkEntity instanceof AbstractContraptionEntity)
+			checkEntity = checkEntity.getVehicle();
+		if (checkEntity instanceof AbstractContraptionEntity)
+			return;
+
+		if (!(checkEntity instanceof LivingEntity creature))
+			return;
+		if (!creature.isAlive())
+			return;
+
+		List<Entity> passengers = creature.getPassengers();
+		OrientedContraptionEntity oce = null;
+		for (Entity passenger : passengers) {
+			if (passenger instanceof OrientedContraptionEntity) {
+				oce = (OrientedContraptionEntity) passenger;
+				break;
+			}
+		}
+		if (oce == null)
+			return;
+
+		if (event.getLevel().isClientSide)
+			return;
+
+		Contraption contraption = oce.getContraption();
+		contraption.stop(event.getLevel());
+
+		CompoundTag contraptionTag = contraption.writeNBT(false);
+		contraptionTag.remove("UUID");
+		contraptionTag.remove("Pos");
+		contraptionTag.remove("Motion");
+
+		ItemStack generatedStack = AllItems.MINECART_CONTRAPTION.asStack();
+		generatedStack.getOrCreateTag().put("Contraption", contraptionTag);
+		generatedStack.setHoverName(creature.getCustomName());
+
+		player.getInventory().placeItemBackInInventory(generatedStack);
+		oce.discard();
+
+		event.setCancellationResult(InteractionResult.SUCCESS);
+		event.setCanceled(true);
+	}
+
+	private static Direction readDirection(CompoundTag tag, String key) {
+		if (!tag.contains(key))
+			return Direction.NORTH;
+		String name = tag.getString(key);
+		try {
+			return Direction.byName(name);
+		} catch (IllegalArgumentException e) {
+			return Direction.NORTH;
+		}
 	}
 }

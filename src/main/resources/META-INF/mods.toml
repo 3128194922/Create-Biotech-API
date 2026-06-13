@@ -30,17 +30,3 @@ mandatory = true
 versionRange = "[6.0.0,)"
 ordering = "AFTER"
 side = "BOTH"
-
-[[dependencies.${mod_id}]]
-modId = "jei"
-mandatory = false
-versionRange = "[15.20.0,)"
-ordering = "AFTER"
-side = "CLIENT"
-
-[[dependencies.${mod_id}]]
-modId = "jade"
-mandatory = false
-versionRange = "[11.0,)"
-ordering = "AFTER"
-side = "CLIENT"
